@@ -321,8 +321,12 @@ function show(page) {
 }
 
 /* INIT */
-loadRates();
-render();
+async function init() {
+    await loadRates();
+    render();
+}
+
+init();
 
 </script>
 
