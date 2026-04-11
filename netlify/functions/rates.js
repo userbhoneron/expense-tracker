@@ -6,7 +6,6 @@ exports.handler = async function () {
 
         const data = await res.json();
 
-        // ✅ Only return the currencies you need
         return {
             statusCode: 200,
             body: JSON.stringify({
