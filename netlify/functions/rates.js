@@ -1,6 +1,8 @@
-exports.handler = async function () {
-  return {
-    statusCode: 200,
-    body: "hello function works"
-  };
-};
+let rates = {};
+
+async function loadRates() {
+    const res = await fetch("/.netlify/functions/rates");
+    const data = await res.json();
+
+    rates = data.rates;
+}
