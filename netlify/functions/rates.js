@@ -1,26 +1,44 @@
+const https = require("https");
+
 exports.handler = async function () {
-    try {
-        const res = await fetch("https://api.currencyfreaks.com/latest?apikey=4058d2d572f04303bcaec84ac205ea35");
+    return new Promise((resolve) => {
 
-        const data = await res.json();
+        const url = "https://api.currencyfreaks.com/latest?apikey=4058d2d572f04303bcaec84ac205ea35";
 
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                rates: {
-                    USD: 1,
-                    THB: parseFloat(data.rates.THB),
-                    MMK: parseFloat(data.rates.MMK)
+        https.get(url, (res) => {
+            let data = "";
+
+            res.on("data", chunk => data += chunk);
+
+            res.on("end", () => {
+                try {
+                    const json = JSON.parse(data);
+
+                    resolve({
+                        statusCode: 200,
+                        body: JSON.stringify({
+                            rates: {
+                                USD: 1,
+                                THB: parseFloat(json.rates.THB),
+                                MMK: parseFloat(json.rates.MMK)
+                            }
+                        })
+                    });
+
+                } catch (e) {
+                    resolve({
+                        statusCode: 500,
+                        body: JSON.stringify({ error: "Parse error" })
+                    });
                 }
-            })
-        };
+            });
 
-    } catch (error) {
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                error: "API failed"
-            })
-        };
-    }
+        }).on("error", () => {
+            resolve({
+                statusCode: 500,
+                body: JSON.stringify({ error: "Request failed" })
+            });
+        });
+
+    });
 };
