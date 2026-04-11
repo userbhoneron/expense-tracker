@@ -8,21 +8,21 @@
 * { box-sizing: border-box; }
 
 body {
+    margin: 0;
     font-family: Arial;
     background: #f4f4f4;
-    margin: 0;
 }
 
 /* TOP BAR */
 .topbar {
     display: flex;
     align-items: center;
-    padding: 10px;
-    background: #222;
+    background: #1f1f1f;
     color: white;
+    padding: 10px;
 }
 
-.menu-btn {
+.menu {
     font-size: 22px;
     cursor: pointer;
     margin-right: 10px;
@@ -32,10 +32,10 @@ body {
 .sidebar {
     position: fixed;
     top: 0;
-    left: -220px;
-    width: 220px;
+    left: -240px;
+    width: 240px;
     height: 100%;
-    background: #333;
+    background: #2b2b2b;
     color: white;
     padding: 10px;
     transition: 0.3s;
@@ -50,13 +50,8 @@ body {
     margin-top: 10px;
     padding: 10px;
     border: none;
-    cursor: pointer;
     border-radius: 6px;
-}
-
-.sidebar .active {
-    background: #28a745;
-    color: white;
+    cursor: pointer;
 }
 
 /* MAIN */
@@ -69,7 +64,7 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* FORM */
+/* INPUTS */
 input, select {
     width: 100%;
     padding: 10px;
@@ -78,16 +73,12 @@ input, select {
     border: 1px solid #ccc;
 }
 
-button {
-    cursor: pointer;
-}
-
-/* BUTTON COLORS */
+/* BUTTONS */
 .add { background: #28a745; color: white; margin-top: 8px; }
-.editBtn { background: #ffc107; border: none; padding: 5px; margin-left: 5px; }
-.delBtn { background: #dc3545; color: white; border: none; padding: 5px; }
+.del { background: #dc3545; color: white; border: none; padding: 5px; }
+.edit { background: #ffc107; border: none; padding: 5px; margin-left: 5px; }
 
-/* EXPENSE ITEM */
+/* EXPENSE */
 .expense {
     display: flex;
     justify-content: space-between;
@@ -107,7 +98,7 @@ button {
 /* GRAPH FIXED */
 .graph {
     margin-top: 15px;
-    height: 260px;
+    height: 240px;
     overflow: hidden;
     background: #fafafa;
     border-radius: 10px;
@@ -123,25 +114,26 @@ svg {
 <body>
 
 <div class="topbar">
-    <div class="menu-btn" onclick="toggleSidebar()">☰</div>
-    Expense Tracker
+    <div class="menu" onclick="toggleSidebar()">☰</div>
+    Expense Tracker Pro
 </div>
 
 <div class="sidebar" id="sidebar">
-    <button onclick="showApp('tracker')" class="active">Expense Tracker</button>
-    <button onclick="showApp('currency')">Currency Converter</button>
+    <button onclick="show('tracker')">Expense Tracker</button>
+    <button onclick="show('currency')">Currency Converter</button>
+    <button onclick="toggleSidebar()">✖ Close</button>
 </div>
 
-<!-- EXPENSE TRACKER -->
+<!-- EXPENSE -->
 <div class="container" id="tracker">
 
-    <h3>Add Expense</h3>
+    <h3>Expenses</h3>
 
     <input id="name" placeholder="Name">
     <input id="amount" type="number" placeholder="Amount">
     <input id="date" type="date">
 
-    <button class="add" onclick="addExpense()">Add</button>
+    <button class="add" onclick="add()">Add</button>
 
     <div id="list"></div>
     <div class="total" id="total"></div>
@@ -156,15 +148,15 @@ svg {
 
     <h3>Currency Converter</h3>
 
-    <input id="amountConv" type="number" placeholder="Amount">
+    <input id="amtConv" type="number" placeholder="Amount">
 
-    <select id="fromCur">
+    <select id="from">
         <option value="USD">USD</option>
         <option value="THB">THB</option>
         <option value="MMK">MMK</option>
     </select>
 
-    <select id="toCur">
+    <select id="to">
         <option value="USD">USD</option>
         <option value="THB">THB</option>
         <option value="MMK">MMK</option>
@@ -172,64 +164,76 @@ svg {
 
     <button class="add" onclick="convert()">Convert</button>
 
-    <h3 id="result"></h3>
+    <h3 id="result">Result: -</h3>
 </div>
 
 <script>
 
-let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let expenses = JSON.parse(localStorage.getItem("exp")) || [];
 let rates = {};
+let editing = null;
 
+/* LOAD RATES */
 async function loadRates() {
     try {
         const res = await fetch("/.netlify/functions/rates");
         const data = await res.json();
         rates = data.rates || {};
-    } catch (e) {
-        console.log("rate load failed");
+    } catch {
+        console.log("rate error");
     }
 }
 
+/* SAVE */
 function save() {
-    localStorage.setItem("expenses", JSON.stringify(expenses));
+    localStorage.setItem("exp", JSON.stringify(expenses));
 }
 
-function addExpense() {
-    const name = document.getElementById("name").value;
-    const amount = parseFloat(document.getElementById("amount").value);
-    const date = document.getElementById("date").value;
+/* ADD */
+function add() {
+    const n = document.getElementById("name").value;
+    const a = parseFloat(document.getElementById("amount").value);
+    const d = document.getElementById("date").value;
 
-    if (!name || !amount || !date) return;
+    if (!n || !a || !d) return;
 
-    expenses.push({ name, amount, date });
+    if (editing !== null) {
+        expenses[editing] = { name: n, amount: a, date: d };
+        editing = null;
+    } else {
+        expenses.push({ name: n, amount: a, date: d });
+    }
+
     save();
     render();
 }
 
-function deleteExpense(i) {
+/* DELETE */
+function del(i) {
     expenses.splice(i,1);
     save();
     render();
 }
 
-function editExpense(i) {
+/* EDIT */
+function edit(i) {
     const e = expenses[i];
     document.getElementById("name").value = e.name;
     document.getElementById("amount").value = e.amount;
     document.getElementById("date").value = e.date;
-
-    deleteExpense(i);
+    editing = i;
 }
 
+/* RENDER */
 function render() {
     const list = document.getElementById("list");
-    const totalEl = document.getElementById("total");
+    const total = document.getElementById("total");
 
     list.innerHTML = "";
-    let total = 0;
+    let sum = 0;
 
-    expenses.forEach((e,i) => {
-        total += e.amount;
+    expenses.forEach((e,i)=>{
+        sum += e.amount;
 
         list.innerHTML += `
         <div class="expense">
@@ -239,39 +243,38 @@ function render() {
             </div>
             <div>
                 ${e.amount}
-                <button class="editBtn" onclick="editExpense(${i})">E</button>
-                <button class="delBtn" onclick="deleteExpense(${i})">X</button>
+                <button class="edit" onclick="edit(${i})">E</button>
+                <button class="del" onclick="del(${i})">X</button>
             </div>
         </div>`;
     });
 
-    totalEl.innerText = "Total: " + total;
+    total.innerText = "Total: " + sum;
 
-    drawGraph();
+    draw();
 }
 
-function drawGraph() {
+/* GRAPH FIXED SCALE */
+function draw() {
     const svg = document.getElementById("graph");
     svg.innerHTML = "";
 
-    const values = expenses.map(e => e.amount);
-    if (!values.length) return;
+    if (!expenses.length) return;
 
-    const width = 500;
-    const height = 260;
+    const vals = expenses.map(e => e.amount);
+    const max = Math.max(...vals);
 
-    const max = Math.max(...values);
+    const w = 500;
+    const h = 240;
 
-    const stepX = width / (values.length - 1 || 1);
+    const step = w / (vals.length - 1 || 1);
 
-    const points = values.map((v,i)=>{
-        return [
-            i * stepX,
-            height - (v / max) * height
-        ];
-    });
+    const pts = vals.map((v,i)=>[
+        i*step,
+        h - (v/max)*h
+    ]);
 
-    const path = "M " + points.map(p=>p.join(",")).join(" L ");
+    const path = "M " + pts.map(p=>p.join(",")).join(" L ");
 
     const line = document.createElementNS("http://www.w3.org/2000/svg","path");
     line.setAttribute("d", path);
@@ -282,29 +285,42 @@ function drawGraph() {
     svg.appendChild(line);
 }
 
+/* CONVERT FIXED OUTPUT */
 function convert() {
-    const amt = parseFloat(document.getElementById("amountConv").value);
-    const from = document.getElementById("fromCur").value;
-    const to = document.getElementById("toCur").value;
+    const amt = parseFloat(document.getElementById("amtConv").value);
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
 
-    if (!amt || !rates[from] || !rates[to]) return;
+    const resBox = document.getElementById("result");
+
+    if (!amt) {
+        resBox.innerText = "Enter amount";
+        return;
+    }
+
+    if (!rates[from] || !rates[to]) {
+        resBox.innerText = "Loading rates...";
+        return;
+    }
 
     const usd = amt / rates[from];
-    const result = usd * rates[to];
+    const out = usd * rates[to];
 
-    document.getElementById("result").innerText =
-        result.toFixed(2) + " " + to;
+    resBox.innerText = "Result: " + out.toFixed(2) + " " + to;
 }
 
+/* SIDEBAR */
 function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("open");
 }
 
-function showApp(app) {
-    document.getElementById("tracker").style.display = app==="tracker"?"block":"none";
-    document.getElementById("currency").style.display = app==="currency"?"block":"none";
+function show(page) {
+    document.getElementById("tracker").style.display = page==="tracker"?"block":"none";
+    document.getElementById("currency").style.display = page==="currency"?"block":"none";
+    document.getElementById("sidebar").classList.remove("open");
 }
 
+/* INIT */
 loadRates();
 render();
 
