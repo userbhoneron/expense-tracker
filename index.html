@@ -129,6 +129,8 @@ svg {
 
     <h3>Expenses</h3>
 
+    <input id="search" placeholder="Search expenses..." oninput="searchExpenses()">
+
     <input id="name" placeholder="Name">
     <input id="amount" type="number" placeholder="Amount">
     <input id="date" type="date">
@@ -147,6 +149,8 @@ svg {
 <div class="container" id="currency" style="display:none">
 
     <h3>Currency Converter</h3>
+
+    <small id="rateStatus">Rates: loading...</small><br><br>
 
     <input id="amtConv" type="number" placeholder="Amount">
 
@@ -169,7 +173,7 @@ svg {
 
 <script>
 
-/* SAFE DEFAULT RATES (prevents freezing) */
+/* SAFE FALLBACK */
 let rates = {
     USD: 1,
     THB: 35,
@@ -178,23 +182,48 @@ let rates = {
 
 let expenses = JSON.parse(localStorage.getItem("exp")) || [];
 let editing = null;
+let currentSearch = "";
 
-/* LOAD RATES */
+/* 🔥 24 HOUR AUTO REFRESH SYSTEM */
 async function loadRates() {
+    const lastUpdate = localStorage.getItem("rateTime");
+    const cachedRates = localStorage.getItem("rateCache");
+
+    const now = Date.now();
+    const oneDay = 24 * 60 * 60 * 1000;
+
+    // USE CACHE IF STILL VALID
+    if (cachedRates && lastUpdate && (now - lastUpdate < oneDay)) {
+        rates = JSON.parse(cachedRates);
+        document.getElementById("rateStatus").innerText =
+            "Rates cached: " + new Date(parseInt(lastUpdate)).toLocaleString();
+        return;
+    }
+
+    // FETCH NEW
     try {
         const res = await fetch("/.netlify/functions/rates");
         const data = await res.json();
 
-        console.log("RAW:", data);
-
         if (data && data.rates) {
             rates = data.rates;
+
+            localStorage.setItem("rateCache", JSON.stringify(rates));
+            localStorage.setItem("rateTime", now);
+
+            document.getElementById("rateStatus").innerText =
+                "Updated: " + new Date(now).toLocaleString();
         }
 
-        console.log("RATES:", rates);
-
     } catch (e) {
-        console.log("rate error, using fallback");
+        console.log("API failed, using cache");
+
+        if (cachedRates) {
+            rates = JSON.parse(cachedRates);
+        }
+
+        document.getElementById("rateStatus").innerText =
+            "Offline cache mode";
     }
 }
 
@@ -203,7 +232,7 @@ function save() {
     localStorage.setItem("exp", JSON.stringify(expenses));
 }
 
-/* ADD / EDIT */
+/* ADD */
 function add() {
     const n = document.getElementById("name").value;
     const a = parseFloat(document.getElementById("amount").value);
@@ -238,6 +267,12 @@ function edit(i) {
     editing = i;
 }
 
+/* SEARCH */
+function searchExpenses() {
+    currentSearch = document.getElementById("search").value.toLowerCase();
+    render();
+}
+
 /* RENDER */
 function render() {
     const list = document.getElementById("list");
@@ -246,7 +281,12 @@ function render() {
     list.innerHTML = "";
     let sum = 0;
 
-    expenses.forEach((e,i)=>{
+    const filtered = expenses.filter(e =>
+        e.name.toLowerCase().includes(currentSearch) ||
+        e.date.includes(currentSearch)
+    );
+
+    filtered.forEach((e,i)=>{
         sum += e.amount;
 
         list.innerHTML += `
@@ -268,7 +308,7 @@ function render() {
     draw();
 }
 
-/* GRAPH SAFE */
+/* GRAPH */
 function draw() {
     const svg = document.getElementById("graph");
     svg.innerHTML = "";
@@ -299,7 +339,7 @@ function draw() {
     svg.appendChild(line);
 }
 
-/* CONVERT FIXED */
+/* CONVERT */
 function convert() {
     const amt = parseFloat(document.getElementById("amtConv").value);
     const from = document.getElementById("from").value;
