@@ -186,44 +186,20 @@ let currentSearch = "";
 
 /* 🔥 24 HOUR AUTO REFRESH SYSTEM */
 async function loadRates() {
-    const lastUpdate = localStorage.getItem("rateTime");
-    const cachedRates = localStorage.getItem("rateCache");
-
-    const now = Date.now();
-    const oneDay = 24 * 60 * 60 * 1000;
-
-    // USE CACHE IF STILL VALID
-    if (cachedRates && lastUpdate && (now - lastUpdate < oneDay)) {
-        rates = JSON.parse(cachedRates);
-        document.getElementById("rateStatus").innerText =
-            "Rates cached: " + new Date(parseInt(lastUpdate)).toLocaleString();
-        return;
-    }
-
-    // FETCH NEW
     try {
         const res = await fetch("/.netlify/functions/rates");
         const data = await res.json();
 
-        if (data && data.rates) {
-            rates = data.rates;
-
-            localStorage.setItem("rateCache", JSON.stringify(rates));
-            localStorage.setItem("rateTime", now);
-
-            document.getElementById("rateStatus").innerText =
-                "Updated: " + new Date(now).toLocaleString();
+        // 🔥 CONVERT STRINGS TO NUMBERS
+        rates = {};
+        for (let k in data.rates) {
+            rates[k] = parseFloat(data.rates[k]);
         }
 
-    } catch (e) {
-        console.log("API failed, using cache");
+        console.log("Rates loaded:", rates);
 
-        if (cachedRates) {
-            rates = JSON.parse(cachedRates);
-        }
-
-        document.getElementById("rateStatus").innerText =
-            "Offline cache mode";
+    } catch (err) {
+        console.log("rate error", err);
     }
 }
 
