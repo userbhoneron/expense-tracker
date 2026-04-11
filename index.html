@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Expense Tracker</title>
+<title>Expense Tracker Pro</title>
 
 <style>
 * { box-sizing: border-box; }
@@ -95,7 +95,7 @@ input, select {
     margin-top: 10px;
 }
 
-/* GRAPH FIXED */
+/* GRAPH */
 .graph {
     margin-top: 15px;
     height: 240px;
@@ -169,8 +169,14 @@ svg {
 
 <script>
 
+/* SAFE DEFAULT RATES (prevents freezing) */
+let rates = {
+    USD: 1,
+    THB: 35,
+    MMK: 2100
+};
+
 let expenses = JSON.parse(localStorage.getItem("exp")) || [];
-let rates = {};
 let editing = null;
 
 /* LOAD RATES */
@@ -178,9 +184,17 @@ async function loadRates() {
     try {
         const res = await fetch("/.netlify/functions/rates");
         const data = await res.json();
-        rates = data.rates || {};
-    } catch {
-        console.log("rate error");
+
+        console.log("RAW:", data);
+
+        if (data && data.rates) {
+            rates = data.rates;
+        }
+
+        console.log("RATES:", rates);
+
+    } catch (e) {
+        console.log("rate error, using fallback");
     }
 }
 
@@ -189,7 +203,7 @@ function save() {
     localStorage.setItem("exp", JSON.stringify(expenses));
 }
 
-/* ADD */
+/* ADD / EDIT */
 function add() {
     const n = document.getElementById("name").value;
     const a = parseFloat(document.getElementById("amount").value);
@@ -254,7 +268,7 @@ function render() {
     draw();
 }
 
-/* GRAPH FIXED SCALE */
+/* GRAPH SAFE */
 function draw() {
     const svg = document.getElementById("graph");
     svg.innerHTML = "";
@@ -270,8 +284,8 @@ function draw() {
     const step = w / (vals.length - 1 || 1);
 
     const pts = vals.map((v,i)=>[
-        i*step,
-        h - (v/max)*h
+        i * step,
+        h - (v / max) * h
     ]);
 
     const path = "M " + pts.map(p=>p.join(",")).join(" L ");
@@ -285,7 +299,7 @@ function draw() {
     svg.appendChild(line);
 }
 
-/* CONVERT FIXED OUTPUT */
+/* CONVERT FIXED */
 function convert() {
     const amt = parseFloat(document.getElementById("amtConv").value);
     const from = document.getElementById("from").value;
@@ -293,13 +307,15 @@ function convert() {
 
     const resBox = document.getElementById("result");
 
+    resBox.innerText = "Calculating...";
+
     if (!amt) {
         resBox.innerText = "Enter amount";
         return;
     }
 
-    if (!rates[from] || !rates[to]) {
-        resBox.innerText = "Loading rates...";
+    if (!rates || !rates[from] || !rates[to]) {
+        resBox.innerText = "Rates unavailable";
         return;
     }
 
