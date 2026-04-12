@@ -17,74 +17,82 @@ body {
     transition: 0.3s;
 }
 
-body.dark { background:#121212; color:#eee; }
-
-.container {
-    max-width:520px;
-    width:95%;
-    margin:20px auto;
-    background:white;
-    padding:15px;
-    border-radius:12px;
+body.dark {
+    background: #121212;
+    color: #eee;
 }
 
-body.dark .container { background:#1e1e1e; }
+.container {
+    max-width: 520px;
+    width: 95%;
+    margin: 20px auto;
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+body.dark .container {
+    background: #1e1e1e;
+}
 
 input, select {
-    width:100%;
-    padding:12px;
-    margin-top:6px;
-    border-radius:8px;
-    border:1px solid #ccc;
+    width: 100%;
+    padding: 12px;
+    margin-top: 6px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
 }
 
 body.dark input, body.dark select {
-    background:#2c2c2c;
-    color:white;
-    border:1px solid #444;
+    background: #2c2c2c;
+    color: white;
+    border: 1px solid #444;
 }
 
 .add {
-    width:100%;
-    padding:12px;
-    margin-top:8px;
-    border:none;
-    border-radius:8px;
-    background:#66bb6a;
-    color:white;
-    font-weight:bold;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #66bb6a;
+    color: white;
+    font-weight: bold;
 }
 
+/* FLOATING BUTTONS */
 .fab {
-    position:fixed;
-    right:15px;
-    width:45px;
-    height:45px;
-    border-radius:50%;
-    border:none;
+    position: fixed;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
 }
 
-#darkBtn { top:15px; background:#2e7d32; color:white; }
-#searchBtn { top:70px; background:#43a047; color:white; }
-#reportBtn { top:125px; background:#1e88e5; color:white; }
+#darkBtn { top: 15px; background:#2e7d32; color:white; }
+#searchBtn { top: 70px; background:#43a047; color:white; }
+#reportBtn { top: 125px; background:#1e88e5; color:white; }
 
+/* SEARCH */
 .searchBox { display:none; margin-bottom:10px; }
 
-/* SWIPE */
+/* EXPENSE */
 .expense-wrapper {
-    position:relative;
-    height:60px;
-    margin-top:8px;
-    overflow:hidden;
-    border-radius:10px;
+    position: relative;
+    height: 60px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 .delete-bg {
-    position:absolute;
-    right:0;
-    width:80px;
-    height:100%;
-    background:#dc3545;
+    position: absolute;
+    right: 0;
+    width: 80px;
+    height: 100%;
+    background: #e53935;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -106,10 +114,8 @@ body.dark input, body.dark select {
 
 body.dark .expense { background:#2a2a2a; }
 
-canvas { width:100% !important; max-height:260px; }
-
-/* REPORT */
-#reportModal{
+/* REPORT MODAL */
+#reportModal {
     position:fixed;
     top:0;left:0;
     width:100%;height:100%;
@@ -117,16 +123,16 @@ canvas { width:100% !important; max-height:260px; }
     display:none;
     justify-content:center;
     align-items:center;
-    z-index:9999;
 }
 
-#reportBox{
+#reportBox {
     background:white;
     width:90%;
     max-width:420px;
     padding:15px;
     border-radius:12px;
 }
+canvas { width:100% !important; max-height:260px; }
 </style>
 </head>
 
@@ -154,12 +160,12 @@ canvas { width:100% !important; max-height:260px; }
 <button class="add" onclick="addExpense()">Add Expense</button>
 
 <div id="list"></div>
-<div id="total" class="total"></div>
+<div id="total"></div>
 
 <h4>Trend</h4>
 <canvas id="lineChart"></canvas>
 
-<h4>Category Breakdown</h4>
+<h4>Category</h4>
 <canvas id="pieChart"></canvas>
 
 </div>
@@ -167,9 +173,54 @@ canvas { width:100% !important; max-height:260px; }
 <!-- REPORT -->
 <div id="reportModal">
 <div id="reportBox">
-<h3>Report</h3>
-<div id="reportOutput"></div>
-<button class="add" onclick="toggleReport()">Close</button>
+
+<!-- STEP 1 FORM -->
+<div id="reportForm">
+<h3>📊 Report Builder</h3>
+
+<select id="rYear"></select>
+<select id="rMonth">
+<option value="">All Months</option>
+<option value="01">Jan</option>
+<option value="02">Feb</option>
+<option value="03">Mar</option>
+<option value="04">Apr</option>
+<option value="05">May</option>
+<option value="06">Jun</option>
+<option value="07">Jul</option>
+<option value="08">Aug</option>
+<option value="09">Sep</option>
+<option value="10">Oct</option>
+<option value="11">Nov</option>
+<option value="12">Dec</option>
+</select>
+
+<select id="rCategory"></select>
+
+<input id="rMin" type="number" placeholder="Min Price">
+<input id="rMax" type="number" placeholder="Max Price">
+<input id="rStart" type="date">
+<input id="rEnd" type="date">
+
+<button class="add" onclick="generateReport()">Generate Report</button>
+<button onclick="toggleReport()" class="del" style="margin-top:10px;width:100%;">Close</button>
+</div>
+
+<!-- STEP 2 RESULTS -->
+<div id="reportResult" style="display:none;">
+<h3>📊 Report Results</h3>
+
+<div id="reportSummary"></div>
+
+<h4>Category Pie</h4>
+<canvas id="reportPie"></canvas>
+
+<h4>Expenses</h4>
+<div id="reportList"></div>
+
+<button class="add" onclick="backToForm()">Back</button>
+</div>
+
 </div>
 </div>
 
@@ -177,94 +228,54 @@ canvas { width:100% !important; max-height:260px; }
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 let customCategories = JSON.parse(localStorage.getItem("customCategories")) || [];
 
-let lineChart, pieChart;
-let searchActive = false;
+let lineChart, pieChart, reportPie;
+
+/* INIT */
+loadCategories();
 
 /* CATEGORIES */
 function loadCategories(){
-    const base=["Food","Transport","Shopping","Bills","Entertainment","Other"];
+    const base=["Food","Transport","Shopping","Bills","Other"];
     const sel=document.getElementById("category");
-
     sel.innerHTML="";
     base.forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
-
-    if(customCategories.length){
-        sel.innerHTML+=`<option disabled>──── Custom ────</option>`;
-        customCategories.forEach(c=>{
-            sel.innerHTML+=`<option>${c}</option>`;
-        });
-    }
 }
-loadCategories();
 
 /* DARK */
-function toggleDark(){
-    document.body.classList.toggle("dark");
-}
+function toggleDark(){ document.body.classList.toggle("dark"); }
 
-/* SEARCH TOGGLE (FIXED RESET) */
+/* SEARCH */
 function toggleSearch(){
-    searchActive = !searchActive;
-
-    const box = document.getElementById("searchBox");
-
-    if(searchActive){
-        box.style.display="block";
-    } else {
-        box.style.display="none";
-        document.getElementById("searchInput").value="";
-    }
-
-    render(); // 👈 THIS FIXES RESET TO NORMAL VIEW
+    const box=document.getElementById("searchBox");
+    box.style.display = box.style.display==="block"?"none":"block";
+    document.getElementById("searchInput").value="";
+    render();
 }
 
 /* REPORT */
 function toggleReport(){
     const m=document.getElementById("reportModal");
     m.style.display = m.style.display==="flex"?"none":"flex";
+    document.getElementById("reportForm").style.display="block";
+    document.getElementById("reportResult").style.display="none";
 }
 
-/* CATEGORY */
-function handleCategory(){
-    customCategory.disabled = category.value !== "Other";
+/* SWITCH */
+function backToForm(){
+    document.getElementById("reportForm").style.display="block";
+    document.getElementById("reportResult").style.display="none";
 }
 
 /* ADD */
 function addExpense(){
-    const name=nameInput.value;
-    const amount=+amountInput.value;
-    const date=dateInput.value;
-    const cat=category.value;
-    const custom=customCategory.value;
-
-    if(!name||!amount||!date||!cat) return alert("Fill all");
-
-    let finalCat=cat;
-
-    if(cat==="Other"&&custom){
-        finalCat=custom;
-        if(!customCategories.includes(custom)){
-            customCategories.push(custom);
-            localStorage.setItem("customCategories",JSON.stringify(customCategories));
-            loadCategories();
-        }
-    }
-
-    expenses.push({name,amount,date,category:finalCat});
+    expenses.push({
+        name:name.value,
+        amount:+amount.value,
+        date:date.value,
+        category:category.value
+    });
     localStorage.setItem("expenses",JSON.stringify(expenses));
-
-    clearInputs();
     render();
-}
-
-/* CLEAR */
-function clearInputs(){
-    nameInput.value="";
-    amountInput.value="";
-    dateInput.value="";
-    category.value="";
-    customCategory.value="";
-    customCategory.disabled=true;
 }
 
 /* DELETE */
@@ -274,96 +285,94 @@ function deleteExpense(i){
     render();
 }
 
-/* EDIT (RESTORED) */
+/* EDIT */
 function editExpense(i){
-    const e=expenses[i];
-    nameInput.value=e.name;
-    amountInput.value=e.amount;
-    dateInput.value=e.date;
+    let e=expenses[i];
+    name.value=e.name;
+    amount.value=e.amount;
+    date.value=e.date;
     category.value=e.category;
 }
 
 /* RENDER */
 function render(){
     const list=document.getElementById("list");
-    const total=document.getElementById("total");
-
     const search=(searchInput?.value||"").toLowerCase();
 
     list.innerHTML="";
-    let sum=0;
+    let total=0;
 
     expenses.forEach((e,i)=>{
+        if(search && !e.name.toLowerCase().includes(search)) return;
 
-        const match=
-        (e.name||"").toLowerCase().includes(search)||
-        (e.category||"").toLowerCase().includes(search)||
-        (e.date||"").includes(search);
-
-        // if search OFF → show all
-        if(searchActive && search && !match) return;
-
-        sum+=e.amount;
+        total+=e.amount;
 
         list.innerHTML+=`
         <div class="expense-wrapper">
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
-
             <div class="expense">
                 <div>
                     <b>${e.name}</b><br>
                     <small>${e.date} • ${e.category}</small>
                 </div>
-
                 <div>
-                    ${e.amount.toFixed(2)}
-                    <button onclick="editExpense(${i})">Edit</button>
+                    ${e.amount}
+                    <button class="edit" onclick="editExpense(${i})">Edit</button>
                 </div>
             </div>
         </div>`;
     });
 
-    total.innerText="Total: "+sum.toFixed(2);
+    document.getElementById("total").innerText="Total: "+total;
     drawCharts();
+}
+
+/* REPORT ENGINE */
+function generateReport(){
+    let f=[...expenses];
+
+    if(rCategory.value) f=f.filter(e=>e.category===rCategory.value);
+    if(rMin.value) f=f.filter(e=>e.amount>=+rMin.value);
+    if(rMax.value) f=f.filter(e=>e.amount<=+rMax.value);
+
+    let total=0;
+    let cat={};
+
+    f.forEach(e=>{
+        total+=e.amount;
+        cat[e.category]=(cat[e.category]||0)+e.amount;
+    });
+
+    reportSummary.innerHTML=`
+    <b>Total:</b> ${total}<br>
+    <b>Items:</b> ${f.length}
+    `;
+
+    if(reportPie) reportPie.destroy();
+
+    reportPie=new Chart(document.getElementById("reportPie"),{
+        type:"pie",
+        data:{
+            labels:Object.keys(cat),
+            datasets:[{data:Object.values(cat)}]
+        }
+    });
+
+    reportList.innerHTML=f.map(e=>`
+    <div>${e.name} - ${e.amount}</div>
+    `).join("");
+
+    document.getElementById("reportForm").style.display="none";
+    document.getElementById("reportResult").style.display="block";
 }
 
 /* CHARTS */
 function drawCharts(){
-    const dateMap={},catMap={};
-
-    expenses.forEach(e=>{
-        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
-        catMap[e.category]=(catMap[e.category]||0)+e.amount;
-    });
-
-    const dates=Object.keys(dateMap).sort();
-    const values=dates.map(d=>dateMap[d]);
-
-    if(lineChart)lineChart.destroy();
-    if(pieChart)pieChart.destroy();
-
-    lineChart=new Chart(lineChartCtx,{
-        type:"line",
-        data:{labels:dates,datasets:[{
-            data:values,
-            borderColor:"green",
-            fill:true,
-            tension:0.3
-        }]}
-    });
-
-    pieChart=new Chart(pieChartCtx,{
-        type:"pie",
-        data:{labels:Object.keys(catMap),datasets:[{
-            data:Object.values(catMap)
-        }]}
-    });
+    const ctx1=lineChartCtx.getContext("2d");
+    const ctx2=pieChartCtx.getContext("2d");
 }
 
 /* INIT */
-const lineChartCtx=document.getElementById("lineChart").getContext("2d");
-const pieChartCtx=document.getElementById("pieChart").getContext("2d");
-
 render();
 </script>
 
