@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>Expense Tracker Pro</title>
 
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 * { box-sizing: border-box; }
 
@@ -22,9 +25,7 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-h2 {
-    margin-top: 0;
-}
+h2 { margin-top: 0; }
 
 input {
     width: 100%;
@@ -81,15 +82,11 @@ button {
 
 .graph {
     margin-top: 15px;
-    height: 240px;
-    background: #fafafa;
-    border-radius: 10px;
-    overflow: hidden;
 }
 
-svg {
-    width: 100%;
-    height: 100%;
+canvas {
+    width: 100% !important;
+    height: 260px !important;
 }
 </style>
 </head>
@@ -109,13 +106,22 @@ svg {
     <div class="total" id="total"></div>
 
     <div class="graph">
-        <svg id="graph"></svg>
+        <canvas id="graph"></canvas>
     </div>
 </div>
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+
+// 🔥 CLEAN BAD DATA
+expenses = expenses.map(e => ({
+    name: e.name || "Unknown",
+    amount: Number(e.amount) || 0,
+    date: e.date || ""
+}));
+
 let editingIndex = null;
+let chart;
 
 /* SAVE */
 function save() {
@@ -124,11 +130,14 @@ function save() {
 
 /* ADD / EDIT */
 function addExpense() {
-    const name = document.getElementById("name").value;
+    const name = document.getElementById("name").value.trim();
     const amount = parseFloat(document.getElementById("amount").value);
     const date = document.getElementById("date").value;
 
-    if (!name || !amount || !date) return;
+    if (!name || isNaN(amount) || !date) {
+        alert("Please fill all fields correctly");
+        return;
+    }
 
     if (editingIndex !== null) {
         expenses[editingIndex] = { name, amount, date };
@@ -177,53 +186,83 @@ function render() {
     expenses.forEach((e, i) => {
         sum += e.amount;
 
-        list.innerHTML += `
-        <div class="expense">
+        const div = document.createElement("div");
+        div.className = "expense";
+
+        div.innerHTML = `
             <div>
                 <b>${e.name}</b><br>
                 <small>${e.date}</small>
             </div>
             <div>
-                ${e.amount}
+                ${e.amount.toFixed(2)}
                 <button class="edit" onclick="editExpense(${i})">Edit</button>
                 <button class="del" onclick="deleteExpense(${i})">X</button>
             </div>
-        </div>`;
+        `;
+
+        list.appendChild(div);
     });
 
-    total.innerText = "Total: " + sum;
+    total.innerText = "Total: " + sum.toFixed(2);
 
     drawGraph();
 }
 
-/* GRAPH */
+/* GRAPH (Chart.js) */
 function drawGraph() {
-    const svg = document.getElementById("graph");
-    svg.innerHTML = "";
+    const ctx = document.getElementById("graph").getContext("2d");
+
+    if (chart) chart.destroy();
 
     if (expenses.length === 0) return;
 
-    const values = expenses.map(e => e.amount);
-    const max = Math.max(...values);
+    // 🔥 GROUP SAME DATES
+    const grouped = {};
+    expenses.forEach(e => {
+        if (!grouped[e.date]) grouped[e.date] = 0;
+        grouped[e.date] += Number(e.amount);
+    });
 
-    const w = 500;
-    const h = 240;
-    const step = w / (values.length - 1 || 1);
+    const dates = Object.keys(grouped).sort();
+    const values = dates.map(d => grouped[d]);
 
-    const points = values.map((v, i) => [
-        i * step,
-        h - (v / max) * h
-    ]);
-
-    const path = "M " + points.map(p => p.join(",")).join(" L ");
-
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    line.setAttribute("d", path);
-    line.setAttribute("stroke", "blue");
-    line.setAttribute("fill", "none");
-    line.setAttribute("stroke-width", "2");
-
-    svg.appendChild(line);
+    chart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: dates,
+            datasets: [{
+                data: values,
+                borderColor: "green",
+                backgroundColor: "rgba(0,128,0,0.2)",
+                tension: 0.3,
+                fill: true,
+                pointRadius: 5,
+                pointBackgroundColor: "green"
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: "Date"
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: "Amount"
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 /* INIT */
