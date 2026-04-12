@@ -17,7 +17,10 @@ body {
     transition: 0.3s;
 }
 
-body.dark { background:#121212; color:#eee; }
+body.dark {
+    background: #121212;
+    color: #eee;
+}
 
 .container {
     max-width: 520px;
@@ -28,7 +31,9 @@ body.dark { background:#121212; color:#eee; }
     border-radius: 12px;
 }
 
-body.dark .container { background:#1e1e1e; }
+body.dark .container {
+    background: #1e1e1e;
+}
 
 input, select {
     width: 100%;
@@ -39,43 +44,56 @@ input, select {
 }
 
 body.dark input, body.dark select {
-    background:#2c2c2c;
-    color:white;
-    border:1px solid #444;
+    background: #2c2c2c;
+    color: white;
+    border: 1px solid #444;
 }
 
-/* ADD BUTTON */
+/* BUTTON */
 .add {
-    width:100%;
-    padding:12px;
-    margin-top:8px;
-    border:none;
-    border-radius:8px;
-    background:#66bb6a;
-    color:white;
-    font-weight:bold;
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    border: none;
+    border-radius: 8px;
+    background: #66bb6a;
+    color: white;
+    font-weight: bold;
 }
 
-/* ========================= */
-/* 🧠 SWIPE SLOT SYSTEM */
-/* ========================= */
+/* FLOATING */
+.fab {
+    position: fixed;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+}
 
+#darkBtn { top: 15px; background: #2e7d32; color: white; }
+#searchBtn { top: 70px; background: #43a047; color: white; }
+
+.searchBox {
+    display: none;
+    margin-bottom: 10px;
+}
+
+/* SWIPE SLOT */
 .expense-wrapper {
     position: relative;
-    width: 100%;
     height: 60px;
     margin-top: 8px;
     overflow: hidden;
     border-radius: 10px;
 }
 
-/* delete behind layer */
 .delete-bg {
     position: absolute;
     right: 0;
     top: 0;
-    height: 100%;
     width: 80px;
+    height: 100%;
     background: #dc3545;
     display: flex;
     align-items: center;
@@ -84,53 +102,33 @@ body.dark input, body.dark select {
     font-weight: bold;
 }
 
-/* swipeable card */
 .expense {
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
     width: 100%;
+    height: 100%;
     background: #f1f1f1;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    border-radius: 10px;
-    touch-action: pan-y;
     transition: transform 0.2s ease;
+    touch-action: pan-y;
 }
 
-body.dark .expense { background:#2a2a2a; }
-
-/* compact text */
-.expense small {
-    font-size: 12px;
-    opacity: 0.7;
+body.dark .expense {
+    background: #2a2a2a;
 }
 
 .total {
-    text-align:right;
-    font-weight:bold;
-    margin-top:10px;
+    text-align: right;
+    font-weight: bold;
+    margin-top: 10px;
 }
 
-/* floating buttons */
-.fab {
-    position:fixed;
-    right:15px;
-    width:45px;
-    height:45px;
-    border-radius:50%;
-    border:none;
+canvas {
+    width: 100% !important;
+    max-height: 260px;
 }
-
-#darkBtn { top:15px; background:#2e7d32; color:white; }
-#searchBtn { top:70px; background:#43a047; color:white; }
-
-.searchBox { display:none; margin-bottom:10px; }
-
-canvas { width:100% !important; max-height:260px; }
 </style>
 </head>
 
@@ -173,18 +171,19 @@ let customCategories = JSON.parse(localStorage.getItem("customCategories")) || [
 
 let lineChart, pieChart;
 
-/* CATEGORY LOAD */
-function loadCategories() {
-    const base = ["Food","Transport","Shopping","Bills","Entertainment","Other"];
-    const select = document.getElementById("category");
+/* LOAD CATEGORIES */
+function loadCategories(){
+    const base=["Food","Transport","Shopping","Bills","Entertainment","Other"];
+    const sel=document.getElementById("category");
 
-    select.innerHTML = "";
-    base.forEach(c => select.innerHTML += `<option>${c}</option>`);
+    sel.innerHTML="";
 
-    if (customCategories.length) {
-        select.innerHTML += `<option disabled>──── Custom ────</option>`;
-        customCategories.forEach(c => {
-            select.innerHTML += `<option>${c}</option>`;
+    base.forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
+
+    if(customCategories.length){
+        sel.innerHTML+=`<option disabled>──── Custom ────</option>`;
+        customCategories.forEach(c=>{
+            sel.innerHTML+=`<option>${c}</option>`;
         });
     }
 }
@@ -207,21 +206,22 @@ function handleCategory(){
 
 /* ADD */
 function addExpense(){
-    const name = document.getElementById("name").value;
-    const amount = +document.getElementById("amount").value;
-    const date = document.getElementById("date").value;
-    const cat = category.value;
-    const custom = customCategory.value;
+    const name=document.getElementById("name").value;
+    const amount=+document.getElementById("amount").value;
+    const date=document.getElementById("date").value;
+    const cat=category.value;
+    const custom=customCategory.value;
 
     if(!name||!amount||!date||!cat) return alert("Fill all");
 
-    let finalCat = cat;
+    let finalCat=cat;
 
-    if(cat==="Other" && custom){
-        finalCat = custom;
+    if(cat==="Other"&&custom){
+        finalCat=custom;
+
         if(!customCategories.includes(custom)){
             customCategories.push(custom);
-            localStorage.setItem("customCategories", JSON.stringify(customCategories));
+            localStorage.setItem("customCategories",JSON.stringify(customCategories));
             loadCategories();
         }
     }
@@ -250,87 +250,55 @@ function deleteExpense(i){
     render();
 }
 
-/* ========================= */
-/* 📱 SWIPE LOGIC */
-/* ========================= */
+/* SWIPE */
+let startX=0,currentX=0,active=null;
 
-let startX = 0;
-let currentX = 0;
-let activeEl = null;
+function attachSwipe(el,i){
+    const card=el.querySelector(".expense");
 
-function attachSwipe(el, index){
-
-    const card = el.querySelector(".expense");
-
-    card.addEventListener("touchstart",(e)=>{
-        startX = e.touches[0].clientX;
-        activeEl = card;
+    card.addEventListener("touchstart",e=>{
+        startX=e.touches[0].clientX;
+        active=card;
     });
 
-    card.addEventListener("touchmove",(e)=>{
-        if(!activeEl) return;
-
-        currentX = e.touches[0].clientX;
-        let diff = currentX - startX;
-
-        if(diff < 0){
-            card.style.transform = `translateX(${diff}px)`;
-        }
+    card.addEventListener("touchmove",e=>{
+        if(!active)return;
+        let diff=e.touches[0].clientX-startX;
+        if(diff<0) card.style.transform=`translateX(${diff}px)`;
     });
 
     card.addEventListener("touchend",()=>{
-        let diff = currentX - startX;
-
-        if(diff < -80){
-            card.style.transform = "translateX(-80px)";
-        } else {
-            card.style.transform = "translateX(0px)";
-        }
-
-        activeEl = null;
-    });
-
-    /* desktop drag */
-    card.addEventListener("mousedown",(e)=>{
-        startX = e.clientX;
-        activeEl = card;
-    });
-
-    window.addEventListener("mousemove",(e)=>{
-        if(!activeEl) return;
-        let diff = e.clientX - startX;
-        if(diff < 0) activeEl.style.transform = `translateX(${diff}px)`;
-    });
-
-    window.addEventListener("mouseup",()=>{
-        if(!activeEl) return;
-        activeEl.style.transform = "translateX(0px)";
-        activeEl = null;
+        card.style.transform="translateX(0px)";
+        active=null;
     });
 }
 
-/* RENDER */
+/* RENDER (SAFE SEARCH FIXED) */
 function render(){
+    const list=document.getElementById("list");
+    const total=document.getElementById("total");
+    const searchEl=document.getElementById("searchInput");
+
+    const search=(searchEl?searchEl.value:"").toLowerCase();
+
     list.innerHTML="";
     let sum=0;
 
-    const search = searchInput.value?.toLowerCase()||"";
-
     expenses.forEach((e,i)=>{
 
-        const match =
-        e.name.toLowerCase().includes(search) ||
-        e.category.toLowerCase().includes(search) ||
-        e.date.includes(search);
+        const match=
+        (e.name||"").toLowerCase().includes(search)||
+        (e.category||"").toLowerCase().includes(search)||
+        (e.date||"").includes(search);
 
-        if(search && !match) return;
+        if(search&&!match)return;
 
         sum+=e.amount;
 
-        const wrapper = document.createElement("div");
-        wrapper.className="expense-wrapper";
+        const wrap=document.createElement("div");
+        wrap.className="expense-wrapper";
 
-        wrapper.innerHTML=`
+        wrap.innerHTML=`
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
             <div class="expense">
                 <div>
@@ -341,35 +309,31 @@ function render(){
             </div>
         `;
 
-        list.appendChild(wrapper);
-        attachSwipe(wrapper,i);
+        list.appendChild(wrap);
+        attachSwipe(wrap,i);
     });
 
     total.innerText="Total: "+sum.toFixed(2);
+
     drawCharts();
 }
 
-/* CHARTS */
+/* CHARTS (LINE = DATE ONLY) */
 function drawCharts(){
-    const dateMap = {};
-    const catMap = {};
+    const dateMap={},catMap={};
 
-    expenses.forEach(e => {
-        // LINE GRAPH = ONLY DATE TOTALS (NO CATEGORY INVOLVED)
-        dateMap[e.date] = (dateMap[e.date] || 0) + e.amount;
-
-        // PIE GRAPH = CATEGORY BREAKDOWN (UNCHANGED)
-        catMap[e.category] = (catMap[e.category] || 0) + e.amount;
+    expenses.forEach(e=>{
+        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
+        catMap[e.category]=(catMap[e.category]||0)+e.amount;
     });
 
-    const dates = Object.keys(dateMap).sort();
-    const values = dates.map(d => dateMap[d]);
+    const dates=Object.keys(dateMap).sort();
+    const values=dates.map(d=>dateMap[d]);
 
-    if (lineChart) lineChart.destroy();
-    if (pieChart) pieChart.destroy();
+    if(lineChart)lineChart.destroy();
+    if(pieChart)pieChart.destroy();
 
-    /* LINE (DATE TOTAL ONLY) */
-    lineChart = new Chart(lineChartCtx,{
+    lineChart=new Chart(lineChartCtx,{
         type:"line",
         data:{
             labels:dates,
@@ -378,35 +342,26 @@ function drawCharts(){
                 borderColor:"green",
                 backgroundColor:"rgba(0,128,0,0.2)",
                 fill:true,
-                tension:0.3,
-                pointRadius:4,
-                pointBackgroundColor:"green"
+                tension:0.3
             }]
-        },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false
         }
     });
 
-    /* PIE (CATEGORY ONLY) */
-    pieChart = new Chart(pieChartCtx,{
+    pieChart=new Chart(pieChartCtx,{
         type:"pie",
         data:{
             labels:Object.keys(catMap),
-            datasets:[{
-                data:Object.values(catMap)
-            }]
+            datasets:[{data:Object.values(catMap)}]
         },
-        options:{
-            aspectRatio:1
-        }
+        options:{aspectRatio:1}
     });
 }
 
 /* INIT */
 const lineChartCtx=document.getElementById("lineChart").getContext("2d");
 const pieChartCtx=document.getElementById("pieChart").getContext("2d");
+
+document.getElementById("searchInput").addEventListener("input",render);
 
 render();
 </script>
