@@ -44,6 +44,23 @@ button:active{transform:scale(.95)}
 /* Search */
 #searchBox{display:none}
 
+.section-title{
+    margin-top:15px;
+    font-weight:bold;
+    font-size:14px;
+    opacity:0.8;
+}
+
+.divider{
+    height:1px;
+    background:#ddd;
+    margin:15px 0;
+}
+
+body.dark .divider{
+    background:#444;
+}
+
 /* Expense */
 .expense{
     background:#f1f1f1;margin-top:8px;padding:10px;border-radius:10px;
@@ -79,13 +96,22 @@ canvas{width:100%!important}
 <h2>Expense Tracker</h2>
 
 <div id="searchBox">
+
+<div class="section-title">🔍 Search & Filters</div>
+
 <input id="searchInput" placeholder="Search">
+
 <select id="filterCategory"></select>
 <input id="fromDate" type="date">
 <input id="toDate" type="date">
 <input id="minAmount" type="number" placeholder="Min">
 <input id="maxAmount" type="number" placeholder="Max">
+
 </div>
+
+<div class="divider"></div>
+
+<div class="section-title">➕ Add Expense</div>
 
 <input id="name" placeholder="Name">
 <input id="amount" type="number" placeholder="Amount">
