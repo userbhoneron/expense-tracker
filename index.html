@@ -53,7 +53,7 @@ body.dark select {
     border: 1px solid #444;
 }
 
-/* MAIN BUTTON */
+/* ADD BUTTON */
 .add {
     width: 100%;
     padding: 12px;
@@ -160,7 +160,6 @@ canvas {
 
 <body>
 
-<!-- FLOATING BUTTONS -->
 <button id="darkBtn" class="fab" onclick="toggleDark()">🌙</button>
 <button id="searchBtn" class="fab" onclick="toggleSearch()">🔍</button>
 
@@ -176,15 +175,7 @@ canvas {
 <input id="amount" type="number" placeholder="Amount">
 <input id="date" type="date">
 
-<select id="category" onchange="handleCategory()">
-    <option value="">Category</option>
-    <option>Food</option>
-    <option>Transport</option>
-    <option>Shopping</option>
-    <option>Bills</option>
-    <option>Entertainment</option>
-    <option>Other</option>
-</select>
+<select id="category" onchange="handleCategory()"></select>
 
 <input id="customCategory" placeholder="Custom Category (optional)" disabled>
 
@@ -203,8 +194,8 @@ canvas {
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let customCategories = JSON.parse(localStorage.getItem("customCategories")) || [];
 
-// clean data
 expenses = expenses.map(e => ({
     name: e.name || "",
     amount: Number(e.amount) || 0,
@@ -212,8 +203,37 @@ expenses = expenses.map(e => ({
     category: e.category || "Other"
 }));
 
-let editingIndex = null;
 let lineChart, pieChart;
+
+/* LOAD CATEGORIES */
+function loadCategories() {
+    const base = ["Food","Transport","Shopping","Bills","Entertainment","Other"];
+    const select = document.getElementById("category");
+
+    select.innerHTML = "";
+
+    base.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+    });
+
+    if (customCategories.length > 0) {
+        const sep = document.createElement("option");
+        sep.disabled = true;
+        sep.textContent = "──── Custom Categories ────";
+        select.appendChild(sep);
+
+        customCategories.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            opt.textContent = c;
+            select.appendChild(opt);
+        });
+    }
+}
+loadCategories();
 
 /* DARK MODE */
 function toggleDark() {
@@ -233,7 +253,7 @@ function handleCategory() {
     custom.disabled = cat !== "Other";
 }
 
-/* ADD EXPENSE (FIXED) */
+/* ADD EXPENSE */
 function addExpense() {
     const name = document.getElementById("name").value.trim();
     const amount = parseFloat(document.getElementById("amount").value);
@@ -246,7 +266,17 @@ function addExpense() {
         return;
     }
 
-    const finalCat = (cat === "Other" && custom) ? custom : cat;
+    let finalCat = cat;
+
+    if (cat === "Other" && custom) {
+        finalCat = custom;
+
+        if (!customCategories.includes(custom)) {
+            customCategories.push(custom);
+            localStorage.setItem("customCategories", JSON.stringify(customCategories));
+            loadCategories();
+        }
+    }
 
     expenses.push({
         name,
@@ -255,14 +285,10 @@ function addExpense() {
         category: finalCat
     });
 
-    save();
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+
     clearInputs();
     render();
-}
-
-/* SAVE */
-function save() {
-    localStorage.setItem("expenses", JSON.stringify(expenses));
 }
 
 /* CLEAR */
@@ -278,18 +304,8 @@ function clearInputs() {
 /* DELETE */
 function deleteExpense(i) {
     expenses.splice(i, 1);
-    save();
+    localStorage.setItem("expenses", JSON.stringify(expenses));
     render();
-}
-
-/* EDIT */
-function editExpense(i) {
-    const e = expenses[i];
-    document.getElementById("name").value = e.name;
-    document.getElementById("amount").value = e.amount;
-    document.getElementById("date").value = e.date;
-    document.getElementById("category").value = e.category;
-    editingIndex = i;
 }
 
 /* RENDER */
@@ -312,22 +328,18 @@ function render() {
 
         sum += e.amount;
 
-        const div = document.createElement("div");
-        div.className = "expense";
-
-        div.innerHTML = `
+        list.innerHTML += `
+        <div class="expense">
             <div>
                 <b>${e.name}</b><br>
                 <small>${e.date} • ${e.category}</small>
             </div>
             <div>
                 ${e.amount.toFixed(2)}
-                <button class="edit" onclick="editExpense(${i})">Edit</button>
+                <button class="edit">Edit</button>
                 <button class="del" onclick="deleteExpense(${i})">X</button>
             </div>
-        `;
-
-        list.appendChild(div);
+        </div>`;
     });
 
     total.innerText = "Total: " + sum.toFixed(2);
@@ -351,7 +363,6 @@ function drawCharts() {
     if (lineChart) lineChart.destroy();
     if (pieChart) pieChart.destroy();
 
-    /* LINE (GREEN) */
     lineChart = new Chart(lineChartCtx, {
         type: "line",
         data: {
@@ -362,32 +373,20 @@ function drawCharts() {
                 backgroundColor: "rgba(0,128,0,0.2)",
                 tension: 0.3,
                 fill: true,
-                pointRadius: 5,
-                pointBackgroundColor: "green"
+                pointRadius: 5
             }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
         }
     });
 
-    /* PIE (CIRCLE FIXED) */
     pieChart = new Chart(pieChartCtx, {
         type: "pie",
         data: {
             labels: Object.keys(catMap),
             datasets: [{
-                data: Object.values(catMap),
-                backgroundColor: [
-                    "#66bb6a","#42a5f5","#ffa726",
-                    "#ab47bc","#ef5350","#26c6da"
-                ]
+                data: Object.values(catMap)
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: true,
             aspectRatio: 1
         }
     });
