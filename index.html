@@ -15,7 +15,6 @@ body {
     font-family: Arial;
     background: #f4f4f4;
 }
-
 body.dark { background:#121212; color:#eee; }
 
 .container {
@@ -26,7 +25,6 @@ body.dark { background:#121212; color:#eee; }
     padding:15px;
     border-radius:12px;
 }
-
 body.dark .container { background:#1e1e1e; }
 
 input, select {
@@ -36,7 +34,6 @@ input, select {
     border-radius:8px;
     border:1px solid #ccc;
 }
-
 body.dark input, body.dark select {
     background:#2c2c2c;
     color:white;
@@ -62,14 +59,13 @@ body.dark input, body.dark select {
     border-radius:50%;
     border:none;
 }
-
 #darkBtn { top:15px; background:#2e7d32; color:white; }
 #searchBtn { top:70px; background:#43a047; color:white; }
 #reportBtn { top:125px; background:#1e88e5; color:white; }
 
 .searchBox { display:none; margin-bottom:10px; }
 
-/* SWIPE */
+/* Swipe */
 .expense-wrapper {
     position:relative;
     height:60px;
@@ -77,7 +73,6 @@ body.dark input, body.dark select {
     overflow:hidden;
     border-radius:10px;
 }
-
 .delete-bg {
     position:absolute;
     right:0;
@@ -90,7 +85,6 @@ body.dark input, body.dark select {
     color:white;
     font-weight:bold;
 }
-
 .expense {
     position:absolute;
     width:100%;
@@ -100,13 +94,12 @@ body.dark input, body.dark select {
     justify-content:space-between;
     align-items:center;
     padding:10px;
-    transition:transform 0.2s;
 }
-
 body.dark .expense { background:#2a2a2a; }
 
 canvas { width:100% !important; max-height:260px; }
 
+/* Modal */
 #reportModal{
     position:fixed;
     top:0;left:0;
@@ -116,7 +109,6 @@ canvas { width:100% !important; max-height:260px; }
     justify-content:center;
     align-items:center;
 }
-
 #reportBox{
     background:white;
     width:90%;
@@ -142,22 +134,6 @@ canvas { width:100% !important; max-height:260px; }
 
     <select id="filterCategory">
         <option value="">All Categories</option>
-    </select>
-
-    <select id="filterMonth">
-        <option value="">All Months</option>
-        <option value="01">January</option>
-        <option value="02">February</option>
-        <option value="03">March</option>
-        <option value="04">April</option>
-        <option value="05">May</option>
-        <option value="06">June</option>
-        <option value="07">July</option>
-        <option value="08">August</option>
-        <option value="09">September</option>
-        <option value="10">October</option>
-        <option value="11">November</option>
-        <option value="12">December</option>
     </select>
 
     <input id="fromDate" type="date">
@@ -195,40 +171,64 @@ canvas { width:100% !important; max-height:260px; }
 
 </div>
 
+<!-- REPORT MODAL -->
 <div id="reportModal">
 <div id="reportBox">
-<h3>Report</h3>
+
+<h3>Generate Report</h3>
+
+<input id="rFrom" type="date">
+<input id="rTo" type="date">
+
+<select id="rCategory">
+    <option value="">All Categories</option>
+</select>
+
+<input id="rMin" type="number" placeholder="Min Amount">
+<input id="rMax" type="number" placeholder="Max Amount">
+
+<button class="add" onclick="generateReport()">Generate</button>
+
+<hr>
+
 <div id="reportOutput"></div>
+
+<h4>Trend</h4>
+<canvas id="reportLine"></canvas>
+
+<h4>Category Breakdown</h4>
+<canvas id="reportPie"></canvas>
+
 <button class="add" onclick="toggleReport()">Close</button>
+
 </div>
 </div>
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 let lineChart, pieChart;
-let searchActive = false;
+let reportLineChart, reportPieChart;
+let searchActive=false;
 
-function toggleDark(){
-    document.body.classList.toggle("dark");
-}
+const lineChartCanvas=document.getElementById("lineChart");
+const pieChartCanvas=document.getElementById("pieChart");
+
+function toggleDark(){ document.body.classList.toggle("dark"); }
 
 function toggleSearch(){
-    searchActive = !searchActive;
-    searchBox.style.display = searchActive ? "block" : "none";
-    if(!searchActive){
-        searchInput.value="";
-    }
+    searchActive=!searchActive;
+    searchBox.style.display=searchActive?"block":"none";
     render();
 }
 
 category.addEventListener("change",()=>{
-    customCategory.disabled = category.value !== "Other";
+    customCategory.disabled = category.value!=="Other";
 });
 
 function addExpense(){
-    let cat = category.value;
+    let cat=category.value;
     if(cat==="Other" && customCategory.value){
-        cat = customCategory.value;
+        cat=customCategory.value;
     }
 
     if(!name.value||!amount.value||!date.value) return alert("Fill all");
@@ -242,11 +242,7 @@ function addExpense(){
 
     localStorage.setItem("expenses",JSON.stringify(expenses));
 
-    name.value="";
-    amount.value="";
-    date.value="";
-    customCategory.value="";
-
+    name.value=""; amount.value=""; date.value=""; customCategory.value="";
     render();
 }
 
@@ -268,24 +264,20 @@ function render(){
     list.innerHTML="";
     let sum=0;
 
-    const text = searchInput.value.toLowerCase();
-    const cat = filterCategory.value;
-    const month = filterMonth.value;
-    const from = fromDate.value;
-    const to = toDate.value;
-    const min = +minAmount.value || 0;
-    const max = +maxAmount.value || Infinity;
+    const text=searchInput.value.toLowerCase();
+    const cat=filterCategory.value;
+    const from=fromDate.value;
+    const to=toDate.value;
+    const min=+minAmount.value||0;
+    const max=+maxAmount.value||Infinity;
 
     expenses.forEach((e,i)=>{
 
-        const expenseMonth = e.date.split("-")[1];
-
-        const match =
-            (!text || e.name.toLowerCase().includes(text)) &&
-            (!cat || e.category===cat) &&
-            (!month || expenseMonth===month) &&
-            (!from || e.date>=from) &&
-            (!to || e.date<=to) &&
+        const match=
+            (!text||e.name.toLowerCase().includes(text)) &&
+            (!cat||e.category===cat) &&
+            (!from||e.date>=from) &&
+            (!to||e.date<=to) &&
             (e.amount>=min && e.amount<=max);
 
         if(searchActive && !match) return;
@@ -295,13 +287,11 @@ function render(){
         list.innerHTML+=`
         <div class="expense-wrapper">
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
-
             <div class="expense">
                 <div>
                     <b>${e.name}</b><br>
                     <small>${e.date} • ${e.category}</small>
                 </div>
-
                 <div>
                     ${e.amount}
                     <button onclick="editExpense(${i})">Edit</button>
@@ -319,7 +309,7 @@ function render(){
 function loadFilterCategories(){
     const cats=[...new Set(expenses.map(e=>e.category))];
     filterCategory.innerHTML='<option value="">All Categories</option>';
-    cats.forEach(c=> filterCategory.innerHTML+=`<option>${c}</option>`);
+    cats.forEach(c=>filterCategory.innerHTML+=`<option>${c}</option>`);
 }
 
 function drawCharts(){
@@ -333,51 +323,72 @@ function drawCharts(){
     const dates=Object.keys(dateMap).sort();
     const values=dates.map(d=>dateMap[d]);
 
-    if(lineChart)lineChart.destroy();
-    if(pieChart)pieChart.destroy();
+    if(lineChart) lineChart.destroy();
+    if(pieChart) pieChart.destroy();
 
-    lineChart=new Chart(lineChart.getContext("2d"),{
+    lineChart=new Chart(lineChartCanvas,{
         type:"line",
-        data:{labels:dates,datasets:[{data:values}]}
+        data:{labels:dates,datasets:[{data:values,fill:true}]}
     });
 
-    pieChart=new Chart(pieChart.getContext("2d"),{
+    pieChart=new Chart(pieChartCanvas,{
         type:"pie",
         data:{labels:Object.keys(catMap),datasets:[{data:Object.values(catMap)}]}
     });
 }
 
 function toggleReport(){
-    if(reportModal.style.display==="flex"){
-        reportModal.style.display="none";
+    reportModal.style.display =
+        reportModal.style.display==="flex"?"none":"flex";
+
+    const cats=[...new Set(expenses.map(e=>e.category))];
+    rCategory.innerHTML='<option value="">All Categories</option>';
+    cats.forEach(c=>rCategory.innerHTML+=`<option>${c}</option>`);
+}
+
+function generateReport(){
+
+    const filtered=expenses.filter(e=>{
+        return (
+            (!rFrom.value||e.date>=rFrom.value) &&
+            (!rTo.value||e.date<=rTo.value) &&
+            (!rCategory.value||e.category===rCategory.value) &&
+            (e.amount>=(+rMin.value||0)) &&
+            (e.amount<=(+rMax.value||Infinity))
+        );
+    });
+
+    if(filtered.length===0){
+        reportOutput.innerHTML="No data";
+        if(reportLineChart) reportLineChart.destroy();
+        if(reportPieChart) reportPieChart.destroy();
         return;
     }
 
-    let total=0, highest=0, lowest=Infinity, catMap={}, monthlyMap={};
+    let total=0, catMap={}, dateMap={};
 
-    expenses.forEach(e=>{
+    filtered.forEach(e=>{
         total+=e.amount;
-        if(e.amount>highest) highest=e.amount;
-        if(e.amount<lowest) lowest=e.amount;
-
         catMap[e.category]=(catMap[e.category]||0)+e.amount;
-        const m=e.date.slice(0,7);
-        monthlyMap[m]=(monthlyMap[m]||0)+e.amount;
+        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
     });
 
-    const avg = expenses.length ? (total/expenses.length).toFixed(2) : 0;
+    reportOutput.innerHTML=`Total: ${total.toFixed(2)} | Entries: ${filtered.length}`;
 
-    const topCategory = Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
-    const topMonth = Object.entries(monthlyMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
+    const dates=Object.keys(dateMap).sort();
+    const values=dates.map(d=>dateMap[d]);
 
-    reportOutput.innerHTML=`
-        <p>Total: ${total.toFixed(2)}</p>
-        <p>Average: ${avg}</p>
-        <p>Top Category: ${topCategory}</p>
-        <p>Top Month: ${topMonth}</p>
-    `;
+    if(reportLineChart) reportLineChart.destroy();
+    reportLineChart=new Chart(reportLine,{
+        type:"line",
+        data:{labels:dates,datasets:[{data:values,fill:true}]}
+    });
 
-    reportModal.style.display="flex";
+    if(reportPieChart) reportPieChart.destroy();
+    reportPieChart=new Chart(reportPie,{
+        type:"pie",
+        data:{labels:Object.keys(catMap),datasets:[{data:Object.values(catMap)}]}
+    });
 }
 
 render();
