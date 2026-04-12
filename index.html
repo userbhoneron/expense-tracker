@@ -17,117 +17,115 @@ body {
     transition: 0.3s;
 }
 
-body.dark {
-    background: #121212;
-    color: #eee;
-}
+body.dark { background:#121212; color:#eee; }
 
 .container {
-    max-width: 520px;
-    width: 95%;
-    margin: 20px auto;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
+    max-width:520px;
+    width:95%;
+    margin:20px auto;
+    background:white;
+    padding:15px;
+    border-radius:12px;
 }
 
-body.dark .container {
-    background: #1e1e1e;
-}
+body.dark .container { background:#1e1e1e; }
 
 input, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    width:100%;
+    padding:12px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid #ccc;
 }
 
 body.dark input, body.dark select {
-    background: #2c2c2c;
-    color: white;
-    border: 1px solid #444;
+    background:#2c2c2c;
+    color:white;
+    border:1px solid #444;
 }
 
-/* BUTTON */
 .add {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    border: none;
-    border-radius: 8px;
-    background: #66bb6a;
-    color: white;
-    font-weight: bold;
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border:none;
+    border-radius:8px;
+    background:#66bb6a;
+    color:white;
+    font-weight:bold;
 }
 
-/* FLOATING */
 .fab {
-    position: fixed;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: none;
+    position:fixed;
+    right:15px;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    border:none;
 }
 
-#darkBtn { top: 15px; background: #2e7d32; color: white; }
-#searchBtn { top: 70px; background: #43a047; color: white; }
+#darkBtn { top:15px; background:#2e7d32; color:white; }
+#searchBtn { top:70px; background:#43a047; color:white; }
+#reportBtn { top:125px; background:#1e88e5; color:white; }
 
-.searchBox {
-    display: none;
-    margin-bottom: 10px;
-}
+.searchBox { display:none; margin-bottom:10px; }
 
-/* SWIPE SLOT */
+/* SWIPE */
 .expense-wrapper {
-    position: relative;
-    height: 60px;
-    margin-top: 8px;
-    overflow: hidden;
-    border-radius: 10px;
+    position:relative;
+    height:60px;
+    margin-top:8px;
+    overflow:hidden;
+    border-radius:10px;
 }
 
 .delete-bg {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 80px;
-    height: 100%;
-    background: #dc3545;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
+    position:absolute;
+    right:0;
+    width:80px;
+    height:100%;
+    background:#dc3545;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:bold;
 }
 
 .expense {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: #f1f1f1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    transition: transform 0.2s ease;
-    touch-action: pan-y;
+    position:absolute;
+    width:100%;
+    height:100%;
+    background:#f1f1f1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    transition:transform 0.2s;
 }
 
-body.dark .expense {
-    background: #2a2a2a;
+body.dark .expense { background:#2a2a2a; }
+
+canvas { width:100% !important; max-height:260px; }
+
+/* REPORT */
+#reportModal{
+    position:fixed;
+    top:0;left:0;
+    width:100%;height:100%;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
 }
 
-.total {
-    text-align: right;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-canvas {
-    width: 100% !important;
-    max-height: 260px;
+#reportBox{
+    background:white;
+    width:90%;
+    max-width:420px;
+    padding:15px;
+    border-radius:12px;
 }
 </style>
 </head>
@@ -136,6 +134,7 @@ canvas {
 
 <button id="darkBtn" class="fab" onclick="toggleDark()">🌙</button>
 <button id="searchBtn" class="fab" onclick="toggleSearch()">🔍</button>
+<button id="reportBtn" class="fab" onclick="toggleReport()">📊</button>
 
 <div class="container">
 
@@ -155,7 +154,7 @@ canvas {
 <button class="add" onclick="addExpense()">Add Expense</button>
 
 <div id="list"></div>
-<div class="total" id="total"></div>
+<div id="total" class="total"></div>
 
 <h4>Trend</h4>
 <canvas id="lineChart"></canvas>
@@ -165,19 +164,28 @@ canvas {
 
 </div>
 
+<!-- REPORT -->
+<div id="reportModal">
+<div id="reportBox">
+<h3>Report</h3>
+<div id="reportOutput"></div>
+<button class="add" onclick="toggleReport()">Close</button>
+</div>
+</div>
+
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 let customCategories = JSON.parse(localStorage.getItem("customCategories")) || [];
 
 let lineChart, pieChart;
+let searchActive = false;
 
-/* LOAD CATEGORIES */
+/* CATEGORIES */
 function loadCategories(){
     const base=["Food","Transport","Shopping","Bills","Entertainment","Other"];
     const sel=document.getElementById("category");
 
     sel.innerHTML="";
-
     base.forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
 
     if(customCategories.length){
@@ -194,9 +202,26 @@ function toggleDark(){
     document.body.classList.toggle("dark");
 }
 
-/* SEARCH */
+/* SEARCH TOGGLE (FIXED RESET) */
 function toggleSearch(){
-    searchBox.style.display = searchBox.style.display==="block"?"none":"block";
+    searchActive = !searchActive;
+
+    const box = document.getElementById("searchBox");
+
+    if(searchActive){
+        box.style.display="block";
+    } else {
+        box.style.display="none";
+        document.getElementById("searchInput").value="";
+    }
+
+    render(); // 👈 THIS FIXES RESET TO NORMAL VIEW
+}
+
+/* REPORT */
+function toggleReport(){
+    const m=document.getElementById("reportModal");
+    m.style.display = m.style.display==="flex"?"none":"flex";
 }
 
 /* CATEGORY */
@@ -206,9 +231,9 @@ function handleCategory(){
 
 /* ADD */
 function addExpense(){
-    const name=document.getElementById("name").value;
-    const amount=+document.getElementById("amount").value;
-    const date=document.getElementById("date").value;
+    const name=nameInput.value;
+    const amount=+amountInput.value;
+    const date=dateInput.value;
     const cat=category.value;
     const custom=customCategory.value;
 
@@ -218,7 +243,6 @@ function addExpense(){
 
     if(cat==="Other"&&custom){
         finalCat=custom;
-
         if(!customCategories.includes(custom)){
             customCategories.push(custom);
             localStorage.setItem("customCategories",JSON.stringify(customCategories));
@@ -235,9 +259,9 @@ function addExpense(){
 
 /* CLEAR */
 function clearInputs(){
-    name.value="";
-    amount.value="";
-    date.value="";
+    nameInput.value="";
+    amountInput.value="";
+    dateInput.value="";
     category.value="";
     customCategory.value="";
     customCategory.disabled=true;
@@ -250,36 +274,21 @@ function deleteExpense(i){
     render();
 }
 
-/* SWIPE */
-let startX=0,currentX=0,active=null;
-
-function attachSwipe(el,i){
-    const card=el.querySelector(".expense");
-
-    card.addEventListener("touchstart",e=>{
-        startX=e.touches[0].clientX;
-        active=card;
-    });
-
-    card.addEventListener("touchmove",e=>{
-        if(!active)return;
-        let diff=e.touches[0].clientX-startX;
-        if(diff<0) card.style.transform=`translateX(${diff}px)`;
-    });
-
-    card.addEventListener("touchend",()=>{
-        card.style.transform="translateX(0px)";
-        active=null;
-    });
+/* EDIT (RESTORED) */
+function editExpense(i){
+    const e=expenses[i];
+    nameInput.value=e.name;
+    amountInput.value=e.amount;
+    dateInput.value=e.date;
+    category.value=e.category;
 }
 
-/* RENDER (SAFE SEARCH FIXED) */
+/* RENDER */
 function render(){
     const list=document.getElementById("list");
     const total=document.getElementById("total");
-    const searchEl=document.getElementById("searchInput");
 
-    const search=(searchEl?searchEl.value:"").toLowerCase();
+    const search=(searchInput?.value||"").toLowerCase();
 
     list.innerHTML="";
     let sum=0;
@@ -291,34 +300,34 @@ function render(){
         (e.category||"").toLowerCase().includes(search)||
         (e.date||"").includes(search);
 
-        if(search&&!match)return;
+        // if search OFF → show all
+        if(searchActive && search && !match) return;
 
         sum+=e.amount;
 
-        const wrap=document.createElement("div");
-        wrap.className="expense-wrapper";
-
-        wrap.innerHTML=`
+        list.innerHTML+=`
+        <div class="expense-wrapper">
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
+
             <div class="expense">
                 <div>
                     <b>${e.name}</b><br>
                     <small>${e.date} • ${e.category}</small>
                 </div>
-                <div>${e.amount.toFixed(2)}</div>
-            </div>
-        `;
 
-        list.appendChild(wrap);
-        attachSwipe(wrap,i);
+                <div>
+                    ${e.amount.toFixed(2)}
+                    <button onclick="editExpense(${i})">Edit</button>
+                </div>
+            </div>
+        </div>`;
     });
 
     total.innerText="Total: "+sum.toFixed(2);
-
     drawCharts();
 }
 
-/* CHARTS (LINE = DATE ONLY) */
+/* CHARTS */
 function drawCharts(){
     const dateMap={},catMap={};
 
@@ -335,33 +344,25 @@ function drawCharts(){
 
     lineChart=new Chart(lineChartCtx,{
         type:"line",
-        data:{
-            labels:dates,
-            datasets:[{
-                data:values,
-                borderColor:"green",
-                backgroundColor:"rgba(0,128,0,0.2)",
-                fill:true,
-                tension:0.3
-            }]
-        }
+        data:{labels:dates,datasets:[{
+            data:values,
+            borderColor:"green",
+            fill:true,
+            tension:0.3
+        }]}
     });
 
     pieChart=new Chart(pieChartCtx,{
         type:"pie",
-        data:{
-            labels:Object.keys(catMap),
-            datasets:[{data:Object.values(catMap)}]
-        },
-        options:{aspectRatio:1}
+        data:{labels:Object.keys(catMap),datasets:[{
+            data:Object.values(catMap)
+        }]}
     });
 }
 
 /* INIT */
 const lineChartCtx=document.getElementById("lineChart").getContext("2d");
 const pieChartCtx=document.getElementById("pieChart").getContext("2d");
-
-document.getElementById("searchInput").addEventListener("input",render);
 
 render();
 </script>
