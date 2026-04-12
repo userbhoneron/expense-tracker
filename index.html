@@ -29,15 +29,13 @@ button:active{transform:scale(.95)}
 .add{background:#66bb6a;color:white;padding:12px;border:none;border-radius:8px;width:100%}
 .closeBtn{background:#1e88e5;color:white;border:none;padding:10px;border-radius:8px;width:100%}
 .saveBtn{background:#43a047;color:white;border:none;padding:12px;border-radius:8px;width:100%}
-.saveBtn:active{background:#2e7d32;transform:scale(.92)}
+.saveBtn:active{background:#2e7d32}
 
 .editBtn{background:#fbc02d;border:none;padding:5px}
 .deleteBtn{background:#e53935;color:white;border:none;padding:5px}
 
 /* FAB */
-.fab{
-    position:fixed;right:15px;width:45px;height:45px;border-radius:50%;border:none;
-}
+.fab{position:fixed;right:15px;width:45px;height:45px;border-radius:50%;border:none;}
 #darkBtn{top:15px;background:#2e7d32;color:white}
 #searchBtn{top:70px;background:#43a047;color:white}
 #reportBtn{top:125px;background:#1e88e5;color:white}
@@ -82,7 +80,6 @@ canvas{width:100%!important}
 
 <div id="searchBox">
 <input id="searchInput" placeholder="Search">
-
 <select id="filterCategory"></select>
 <input id="fromDate" type="date">
 <input id="toDate" type="date">
@@ -113,7 +110,6 @@ canvas{width:100%!important}
 <!-- REPORT -->
 <div id="reportModal" class="modal">
 <div class="box">
-
 <h3>Report</h3>
 
 <input id="rFrom" type="date">
@@ -130,14 +126,12 @@ canvas{width:100%!important}
 <canvas id="reportPie"></canvas>
 
 <button class="closeBtn" id="closeReport">Close</button>
-
 </div>
 </div>
 
 <!-- NOTES -->
 <div id="notesModal" class="modal">
 <div class="box">
-
 <h3>Notes & Insights</h3>
 
 <textarea id="notesArea"></textarea>
@@ -147,7 +141,6 @@ canvas{width:100%!important}
 <div id="autoNotes"></div>
 
 <button class="closeBtn" id="closeNotes">Close</button>
-
 </div>
 </div>
 
@@ -155,17 +148,20 @@ canvas{width:100%!important}
 const $=id=>document.getElementById(id);
 
 let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
-let notes=localStorage.getItem("notes")||[];
+let notes=localStorage.getItem("notes")||"";
 let customCats=JSON.parse(localStorage.getItem("customCats"))||[
-    "Food","Transport","Shopping","Bills","Entertainment","Other"
+"Food","Transport","Shopping","Bills","Entertainment","Other"
 ];
+
+let editIndex=-1;
+let lineChart,pieChart,reportLineChart,reportPieChart;
 
 /* DARK MODE */
 if(localStorage.getItem("darkMode")==="on") document.body.classList.add("dark");
 $("darkBtn").onclick=()=>{
     document.body.classList.toggle("dark");
     localStorage.setItem("darkMode",
-        document.body.classList.contains("dark")?"on":"off");
+    document.body.classList.contains("dark")?"on":"off");
 };
 
 /* CATEGORY LOAD */
@@ -184,10 +180,13 @@ $("category").onchange=()=>{
     if(!isOther) $("customCategory").value="";
 };
 
-/* ADD */
+/* ADD / UPDATE */
 $("addBtn").onclick=()=>{
+    const name=$("name").value.trim();
+    const amount=+$("amount").value;
+    const date=$("date").value;
     let cat=$("category").value;
-    let custom=$("customCategory").value.trim();
+    const custom=$("customCategory").value.trim();
 
     if(cat==="Other"){
         if(!custom){alert("Enter custom category");return;}
@@ -200,16 +199,15 @@ $("addBtn").onclick=()=>{
         }
     }
 
-    if(!$("name").value||!$("amount").value||!$("date").value){
-        alert("Fill all");return;
-    }
+    if(!name||!amount||!date){alert("Fill all");return;}
 
-    expenses.push({
-        name:$("name").value,
-        amount:+$("amount").value,
-        date:$("date").value,
-        category:cat
-    });
+    if(editIndex===-1){
+        expenses.push({name,amount,date,category:cat});
+    }else{
+        expenses[editIndex]={name,amount,date,category:cat};
+        editIndex=-1;
+        $("addBtn").innerText="Add Expense";
+    }
 
     localStorage.setItem("expenses",JSON.stringify(expenses));
 
@@ -222,6 +220,27 @@ $("addBtn").onclick=()=>{
     render();
 };
 
+/* EDIT */
+function editExpense(i){
+    const e=expenses[i];
+
+    $("name").value=e.name;
+    $("amount").value=e.amount;
+    $("date").value=e.date;
+
+    if(customCats.includes(e.category)){
+        $("category").value=e.category;
+        $("customCategory").disabled=true;
+    }else{
+        $("category").value="Other";
+        $("customCategory").disabled=false;
+        $("customCategory").value=e.category;
+    }
+
+    editIndex=i;
+    $("addBtn").innerText="Update Expense";
+}
+
 /* DELETE */
 function deleteExpense(i){
     if(confirm("Delete?")){
@@ -229,14 +248,6 @@ function deleteExpense(i){
         localStorage.setItem("expenses",JSON.stringify(expenses));
         render();
     }
-}
-
-/* EDIT */
-function editExpense(i){
-    const e=expenses[i];
-    $("name").value=e.name;
-    $("amount").value=e.amount;
-    $("date").value=e.date;
 }
 
 /* SEARCH */
@@ -251,8 +262,6 @@ $("searchBtn").onclick=()=>{
 $("searchInput").oninput=render;
 
 /* RENDER */
-let lineChart,pieChart,reportLineChart,reportPieChart;
-
 function render(){
     let html="",sum=0;
 
@@ -304,29 +313,29 @@ function loadFilters(){
     });
 }
 
-/* CHARTS (FIXED ORDER) */
+/* CHARTS */
 function drawCharts(){
-    const dateMap={},catMap={};
+    const d={},c={};
 
     expenses.forEach(e=>{
-        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
-        catMap[e.category]=(catMap[e.category]||0)+e.amount;
+        d[e.date]=(d[e.date]||0)+e.amount;
+        c[e.category]=(c[e.category]||0)+e.amount;
     });
 
-    const dates=Object.keys(dateMap).sort();
-    const cats=Object.keys(catMap).sort();
+    const dates=Object.keys(d).sort();
+    const cats=Object.keys(c).sort();
 
     if(lineChart)lineChart.destroy();
     if(pieChart)pieChart.destroy();
 
     lineChart=new Chart($("lineChart"),{
         type:"line",
-        data:{labels:dates,datasets:[{data:dates.map(d=>dateMap[d])}]}
+        data:{labels:dates,datasets:[{data:dates.map(x=>d[x])}]}
     });
 
     pieChart=new Chart($("pieChart"),{
         type:"pie",
-        data:{labels:cats,datasets:[{data:cats.map(c=>catMap[c])}]}
+        data:{labels:cats,datasets:[{data:cats.map(x=>c[x])}]}
     });
 }
 
