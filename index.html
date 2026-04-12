@@ -37,10 +37,11 @@ body.dark .container {
 
 input, select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 6px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #ccc;
+    font-size: 16px;
 }
 
 body.dark input,
@@ -50,22 +51,51 @@ body.dark select {
     border: 1px solid #444;
 }
 
+/* BUTTONS */
 button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 8px;
     border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* EDIT / DELETE */
+.edit {
+    background: #ffc107;
+    color: black;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.del {
+    background: #dc3545;
+    color: white;
+    padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
 }
 
+body.dark .edit {
+    background: #e0a800;
+}
+
+body.dark .del {
+    background: #c82333;
+}
+
+/* EXPENSE BOX */
 .expense {
     display: flex;
     justify-content: space-between;
     background: #f1f1f1;
-    padding: 8px;
-    margin-top: 6px;
-    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
 }
 
 body.dark .expense {
@@ -78,15 +108,16 @@ body.dark .expense {
     margin-top: 10px;
 }
 
-canvas {
-    width: 100% !important;
-    height: 240px !important;
-}
-
-/* SEARCH PANEL */
+/* SEARCH */
 .searchBox {
     display: none;
     margin-bottom: 10px;
+}
+
+/* CHARTS */
+canvas {
+    width: 100% !important;
+    max-height: 260px;
 }
 </style>
 </head>
@@ -134,7 +165,7 @@ canvas {
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
-// clean data
+// clean old data safely
 expenses = expenses.map(e => ({
     name: e.name || "Unknown",
     amount: Number(e.amount) || 0,
@@ -155,7 +186,7 @@ if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark");
 }
 
-/* SEARCH TOGGLE */
+/* SEARCH */
 function toggleSearch() {
     const box = document.getElementById("searchBox");
     box.style.display = box.style.display === "block" ? "none" : "block";
@@ -167,7 +198,7 @@ function handleCategory() {
     customCategory.disabled = cat !== "Other";
 }
 
-/* ADD */
+/* ADD EXPENSE */
 function addExpense() {
     const name = nameInput.value.trim();
     const amount = parseFloat(amountInput.value);
@@ -250,8 +281,8 @@ function render() {
             </div>
             <div>
                 ${e.amount.toFixed(2)}
-                <button onclick="editExpense(${i})">Edit</button>
-                <button onclick="deleteExpense(${i})">X</button>
+                <button class="edit" onclick="editExpense(${i})">Edit</button>
+                <button class="del" onclick="deleteExpense(${i})">X</button>
             </div>
         `;
 
@@ -259,6 +290,7 @@ function render() {
     });
 
     total.innerText = "Total: " + sum.toFixed(2);
+
     drawCharts();
 }
 
@@ -278,33 +310,56 @@ function drawCharts() {
     if (lineChart) lineChart.destroy();
     if (pieChart) pieChart.destroy();
 
+    /* LINE GRAPH (GREEN) */
     lineChart = new Chart(lineChartCtx, {
         type: "line",
         data: {
             labels: dates,
             datasets: [{
+                label: "Expenses",
                 data: values,
                 borderColor: "green",
                 backgroundColor: "rgba(0,128,0,0.2)",
+                tension: 0.3,
                 fill: true,
-                tension: 0.3
+                pointRadius: 5,
+                pointBackgroundColor: "green"
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { title: { display: true, text: "Date" } },
+                y: { title: { display: true, text: "Amount" }, beginAtZero: true }
+            }
         }
     });
 
+    /* PIE CHART (PERFECT CIRCLE) */
     pieChart = new Chart(pieChartCtx, {
         type: "pie",
         data: {
             labels: Object.keys(catMap),
             datasets: [{
-                data: Object.values(catMap)
+                data: Object.values(catMap),
+                backgroundColor: [
+                    "#4caf50","#2196f3","#ff9800",
+                    "#e91e63","#9c27b0","#00bcd4"
+                ]
             }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 1,
+            plugins: {
+                legend: { position: "bottom" }
+            }
         }
     });
 }
-
-/* SEARCH LIVE */
-searchInput.oninput = render;
 
 /* INIT */
 const lineChartCtx = document.getElementById("lineChart").getContext("2d");
