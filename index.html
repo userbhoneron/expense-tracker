@@ -9,25 +9,18 @@
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#f4f4f4}
+body{margin:0;font-family:Arial;background:#f4f4f4;transition:.3s}
 body.dark{background:#121212;color:#eee}
 
 .container{
-    max-width:520px;
-    width:95%;
-    margin:20px auto;
-    background:white;
-    padding:15px;
-    border-radius:12px;
+    max-width:520px;width:95%;margin:20px auto;
+    background:white;padding:15px;border-radius:12px;
 }
 body.dark .container{background:#1e1e1e}
 
 input,select,textarea{
-    width:100%;
-    padding:10px;
-    margin-top:6px;
-    border-radius:8px;
-    border:1px solid #ccc;
+    width:100%;padding:10px;margin-top:6px;
+    border-radius:8px;border:1px solid #ccc;
 }
 
 button{cursor:pointer;transition:.2s}
@@ -50,11 +43,15 @@ button:active{transform:scale(.95)}
 #reportBtn{top:125px;background:#1e88e5;color:white}
 #notesBtn{bottom:20px;background:#fbc02d}
 
+/* Search */
+#searchBox{display:none}
+
 /* Expense */
 .expense{
     background:#f1f1f1;margin-top:8px;padding:10px;border-radius:10px;
     display:flex;justify-content:space-between;
 }
+body.dark .expense{background:#2a2a2a}
 
 /* Modal */
 .modal{
@@ -83,7 +80,7 @@ canvas{width:100%!important}
 
 <h2>Expense Tracker</h2>
 
-<div id="searchBox" style="display:none">
+<div id="searchBox">
 <input id="searchInput" placeholder="Search">
 
 <select id="filterCategory"></select>
@@ -97,15 +94,7 @@ canvas{width:100%!important}
 <input id="amount" type="number" placeholder="Amount">
 <input id="date" type="date">
 
-<select id="category">
-<option>Food</option>
-<option>Transport</option>
-<option>Shopping</option>
-<option>Bills</option>
-<option>Entertainment</option>
-<option>Other</option>
-</select>
-
+<select id="category"></select>
 <input id="customCategory" placeholder="Custom Category" disabled>
 
 <button class="add" id="addBtn">Add Expense</button>
@@ -163,17 +152,56 @@ canvas{width:100%!important}
 </div>
 
 <script>
-let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
-let notes=localStorage.getItem("notes")||"";
-
 const $=id=>document.getElementById(id);
+
+let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
+let notes=localStorage.getItem("notes")||[];
+let customCats=JSON.parse(localStorage.getItem("customCats"))||[
+    "Food","Transport","Shopping","Bills","Entertainment","Other"
+];
+
+/* DARK MODE */
+if(localStorage.getItem("darkMode")==="on") document.body.classList.add("dark");
+$("darkBtn").onclick=()=>{
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode",
+        document.body.classList.contains("dark")?"on":"off");
+};
+
+/* CATEGORY LOAD */
+function loadCategoryDropdown(){
+    $("category").innerHTML="";
+    customCats.forEach(c=>{
+        $("category").innerHTML+=`<option>${c}</option>`;
+    });
+}
+loadCategoryDropdown();
+
+/* CATEGORY CHANGE */
+$("category").onchange=()=>{
+    const isOther=$("category").value==="Other";
+    $("customCategory").disabled=!isOther;
+    if(!isOther) $("customCategory").value="";
+};
 
 /* ADD */
 $("addBtn").onclick=()=>{
-    let cat=$("category").value==="Other"?$("customCategory").value:$("category").value;
+    let cat=$("category").value;
+    let custom=$("customCategory").value.trim();
+
+    if(cat==="Other"){
+        if(!custom){alert("Enter custom category");return;}
+        cat=custom;
+
+        if(!customCats.includes(custom)){
+            customCats.push(custom);
+            localStorage.setItem("customCats",JSON.stringify(customCats));
+            loadCategoryDropdown();
+        }
+    }
 
     if(!$("name").value||!$("amount").value||!$("date").value){
-        alert("Fill all fields");return;
+        alert("Fill all");return;
     }
 
     expenses.push({
@@ -185,13 +213,18 @@ $("addBtn").onclick=()=>{
 
     localStorage.setItem("expenses",JSON.stringify(expenses));
 
-    $("name").value="";$("amount").value="";$("date").value="";
+    $("name").value="";
+    $("amount").value="";
+    $("date").value="";
+    $("customCategory").value="";
+    $("category").value=customCats[0];
+
     render();
 };
 
 /* DELETE */
 function deleteExpense(i){
-    if(confirm("Delete this expense?")){
+    if(confirm("Delete?")){
         expenses.splice(i,1);
         localStorage.setItem("expenses",JSON.stringify(expenses));
         render();
@@ -208,11 +241,18 @@ function editExpense(i){
 
 /* SEARCH */
 $("searchBtn").onclick=()=>{
-    $("searchBox").style.display=
-    $("searchBox").style.display==="block"?"none":"block";
+    const box=$("searchBox");
+    box.style.display=box.style.display==="block"?"none":"block";
+    if(box.style.display==="none"){
+        $("searchInput").value="";
+        render();
+    }
 };
+$("searchInput").oninput=render;
 
 /* RENDER */
+let lineChart,pieChart,reportLineChart,reportPieChart;
+
 function render(){
     let html="",sum=0;
 
@@ -224,60 +264,70 @@ function render(){
     const max=+$("maxAmount").value||Infinity;
 
     expenses.forEach((e,i)=>{
-        if(
-            (!text||e.name.toLowerCase().includes(text)) &&
-            (!cat||e.category===cat) &&
-            (!from||e.date>=from) &&
-            (!to||e.date<=to) &&
-            (e.amount>=min&&e.amount<=max)
-        ){
-            sum+=e.amount;
+        const match=
+        (!text||e.name.toLowerCase().includes(text)||e.category.toLowerCase().includes(text))&&
+        (!cat||e.category===cat)&&
+        (!from||e.date>=from)&&
+        (!to||e.date<=to)&&
+        (e.amount>=min&&e.amount<=max);
 
-            html+=`
-            <div class="expense">
-                <div><b>${e.name}</b><br>${e.date} • ${e.category}</div>
-                <div>
-                    ${e.amount}
-                    <button class="editBtn" onclick="editExpense(${i})">Edit</button>
-                    <button class="deleteBtn" onclick="deleteExpense(${i})">Del</button>
-                </div>
-            </div>`;
-        }
+        if(!match)return;
+
+        sum+=e.amount;
+
+        html+=`
+        <div class="expense">
+            <div><b>${e.name}</b><br>${e.date} • ${e.category}</div>
+            <div>
+                ${e.amount}
+                <button class="editBtn" onclick="editExpense(${i})">Edit</button>
+                <button class="deleteBtn" onclick="deleteExpense(${i})">Del</button>
+            </div>
+        </div>`;
     });
 
     $("list").innerHTML=html;
     $("total").innerText="Total: "+sum;
 
-    loadCategories();
+    loadFilters();
     drawCharts();
 }
 
-/* CATEGORIES */
-function loadCategories(){
-    const cats=[...new Set(expenses.map(e=>e.category))];
+/* FILTERS */
+function loadFilters(){
     $("filterCategory").innerHTML='<option value="">All</option>';
     $("rCategory").innerHTML='<option value="">All</option>';
-    cats.forEach(c=>{
+
+    customCats.forEach(c=>{
         $("filterCategory").innerHTML+=`<option>${c}</option>`;
         $("rCategory").innerHTML+=`<option>${c}</option>`;
     });
 }
 
-/* CHARTS */
-let lineChart,pieChart,reportLineChart,reportPieChart;
-
+/* CHARTS (FIXED ORDER) */
 function drawCharts(){
-    const d={},c={};
+    const dateMap={},catMap={};
+
     expenses.forEach(e=>{
-        d[e.date]=(d[e.date]||0)+e.amount;
-        c[e.category]=(c[e.category]||0)+e.amount;
+        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
+        catMap[e.category]=(catMap[e.category]||0)+e.amount;
     });
+
+    const dates=Object.keys(dateMap).sort();
+    const cats=Object.keys(catMap).sort();
 
     if(lineChart)lineChart.destroy();
     if(pieChart)pieChart.destroy();
 
-    lineChart=new Chart($("lineChart"),{type:"line",data:{labels:Object.keys(d),datasets:[{data:Object.values(d)}]}});
-    pieChart=new Chart($("pieChart"),{type:"pie",data:{labels:Object.keys(c),datasets:[{data:Object.values(c)}]}});
+    lineChart=new Chart($("lineChart"),{
+        type:"line",
+        data:{labels:dates,datasets:[{data:dates.map(d=>dateMap[d])}]}
+    });
+
+    pieChart=new Chart($("pieChart"),{
+        type:"pie",
+        data:{labels:cats,datasets:[{data:cats.map(c=>catMap[c])}]}
+    });
 }
 
 /* REPORT */
@@ -307,8 +357,15 @@ $("genReport").onclick=()=>{
     if(reportLineChart)reportLineChart.destroy();
     if(reportPieChart)reportPieChart.destroy();
 
-    reportLineChart=new Chart($("reportLine"),{type:"line",data:{labels:Object.keys(d),datasets:[{data:Object.values(d)}]}});
-    reportPieChart=new Chart($("reportPie"),{type:"pie",data:{labels:Object.keys(c),datasets:[{data:Object.values(c)}]}});
+    reportLineChart=new Chart($("reportLine"),{
+        type:"line",
+        data:{labels:Object.keys(d),datasets:[{data:Object.values(d)}]}
+    });
+
+    reportPieChart=new Chart($("reportPie"),{
+        type:"pie",
+        data:{labels:Object.keys(c),datasets:[{data:Object.values(c)}]}
+    });
 };
 
 /* NOTES */
