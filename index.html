@@ -227,25 +227,33 @@ function toggleSearch() {
 
 /* CATEGORY */
 function handleCategory() {
-    customCategory.disabled = category.value !== "Other";
+    const cat = document.getElementById("category").value;
+    const custom = document.getElementById("customCategory");
+
+    custom.disabled = cat !== "Other";
 }
 
 /* ADD */
 function addExpense() {
-    const name = nameInput.value.trim();
-    const amount = parseFloat(amountInput.value);
-    const date = dateInput.value;
-    const cat = category.value;
-    const custom = customCategory.value.trim();
+    const name = document.getElementById("name").value.trim();
+    const amount = parseFloat(document.getElementById("amount").value);
+    const date = document.getElementById("date").value;
+    const cat = document.getElementById("category").value;
+    const custom = document.getElementById("customCategory").value.trim();
 
     if (!name || isNaN(amount) || !date || !cat) {
         alert("Fill all fields");
         return;
     }
 
-    const finalCat = cat === "Other" && custom ? custom : cat;
+    const finalCat = (cat === "Other" && custom) ? custom : cat;
 
-    expenses.push({ name, amount, date, category: finalCat });
+    expenses.push({
+        name,
+        amount,
+        date,
+        category: finalCat
+    });
 
     save();
     clearInputs();
@@ -259,14 +267,13 @@ function save() {
 
 /* CLEAR */
 function clearInputs() {
-    nameInput.value = "";
-    amountInput.value = "";
-    dateInput.value = "";
-    category.value = "";
-    customCategory.value = "";
-    customCategory.disabled = true;
+    document.getElementById("name").value = "";
+    document.getElementById("amount").value = "";
+    document.getElementById("date").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("customCategory").value = "";
+    document.getElementById("customCategory").disabled = true;
 }
-
 /* DELETE */
 function deleteExpense(i) {
     expenses.splice(i, 1);
