@@ -22,35 +22,6 @@ body.dark {
     color: #eee;
 }
 
-/* FLOATING BUTTONS */
-.fab {
-    position: fixed;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    font-size: 18px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    z-index: 100;
-}
-
-/* dark mode button */
-#darkBtn {
-    top: 15px;
-    right: 15px;
-    background: #2e7d32;
-    color: white;
-}
-
-/* search button */
-#searchBtn {
-    top: 70px;
-    right: 15px;
-    background: #43a047;
-    color: white;
-}
-
 /* CONTAINER */
 .container {
     max-width: 520px;
@@ -72,6 +43,7 @@ input, select {
     margin-top: 6px;
     border-radius: 8px;
     border: 1px solid #ccc;
+    font-size: 16px;
 }
 
 body.dark input,
@@ -81,7 +53,7 @@ body.dark select {
     border: 1px solid #444;
 }
 
-/* ADD BUTTON (LIGHT GREEN) */
+/* MAIN BUTTON */
 .add {
     width: 100%;
     padding: 12px;
@@ -98,7 +70,7 @@ body.dark select {
     background: #4caf50;
 }
 
-/* EXPENSE */
+/* EXPENSE CARD */
 .expense {
     display: flex;
     justify-content: space-between;
@@ -114,29 +86,30 @@ body.dark .expense {
 
 /* EDIT / DELETE */
 .edit {
-    background: #a5d6a7;
-    border: none;
+    background: #ffc107;
+    color: black;
     padding: 6px 10px;
     border-radius: 6px;
     margin-right: 5px;
+    border: none;
     cursor: pointer;
 }
 
 .del {
-    background: #ef5350;
+    background: #dc3545;
     color: white;
-    border: none;
     padding: 6px 10px;
     border-radius: 6px;
+    border: none;
     cursor: pointer;
 }
 
 body.dark .edit {
-    background: #81c784;
+    background: #e0a800;
 }
 
 body.dark .del {
-    background: #e57373;
+    background: #c82333;
 }
 
 /* TOTAL */
@@ -146,7 +119,7 @@ body.dark .del {
     margin-top: 10px;
 }
 
-/* SEARCH BOX */
+/* SEARCH */
 .searchBox {
     display: none;
     margin-bottom: 10px;
@@ -156,6 +129,31 @@ body.dark .del {
 canvas {
     width: 100% !important;
     max-height: 260px;
+}
+
+/* FLOATING BUTTONS */
+.fab {
+    position: fixed;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+#darkBtn {
+    top: 15px;
+    background: #2e7d32;
+    color: white;
+}
+
+#searchBtn {
+    top: 70px;
+    background: #43a047;
+    color: white;
 }
 </style>
 </head>
@@ -167,43 +165,46 @@ canvas {
 <button id="searchBtn" class="fab" onclick="toggleSearch()">🔍</button>
 
 <div class="container">
-    <h2>Expense Tracker</h2>
 
-    <div class="searchBox" id="searchBox">
-        <input id="searchInput" placeholder="Search...">
-    </div>
+<h2>Expense Tracker</h2>
 
-    <input id="name" placeholder="Name">
-    <input id="amount" type="number" placeholder="Amount">
-    <input id="date" type="date">
+<div class="searchBox" id="searchBox">
+    <input id="searchInput" placeholder="Search...">
+</div>
 
-    <select id="category" onchange="handleCategory()">
-        <option value="">Category</option>
-        <option>Food</option>
-        <option>Transport</option>
-        <option>Shopping</option>
-        <option>Bills</option>
-        <option>Entertainment</option>
-        <option>Other</option>
-    </select>
+<input id="name" placeholder="Name">
+<input id="amount" type="number" placeholder="Amount">
+<input id="date" type="date">
 
-    <input id="customCategory" placeholder="Custom Category (optional)" disabled>
+<select id="category" onchange="handleCategory()">
+    <option value="">Category</option>
+    <option>Food</option>
+    <option>Transport</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Entertainment</option>
+    <option>Other</option>
+</select>
 
-    <button class="add" onclick="addExpense()">Add Expense</button>
+<input id="customCategory" placeholder="Custom Category (optional)" disabled>
 
-    <div id="list"></div>
-    <div class="total" id="total"></div>
+<button class="add" onclick="addExpense()">Add Expense</button>
 
-    <h4>Trend</h4>
-    <canvas id="lineChart"></canvas>
+<div id="list"></div>
+<div class="total" id="total"></div>
 
-    <h4>Category Breakdown</h4>
-    <canvas id="pieChart"></canvas>
+<h4>Trend</h4>
+<canvas id="lineChart"></canvas>
+
+<h4>Category Breakdown</h4>
+<canvas id="pieChart"></canvas>
+
 </div>
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
 
+// clean data
 expenses = expenses.map(e => ({
     name: e.name || "",
     amount: Number(e.amount) || 0,
@@ -229,11 +230,10 @@ function toggleSearch() {
 function handleCategory() {
     const cat = document.getElementById("category").value;
     const custom = document.getElementById("customCategory");
-
     custom.disabled = cat !== "Other";
 }
 
-/* ADD */
+/* ADD EXPENSE (FIXED) */
 function addExpense() {
     const name = document.getElementById("name").value.trim();
     const amount = parseFloat(document.getElementById("amount").value);
@@ -274,6 +274,7 @@ function clearInputs() {
     document.getElementById("customCategory").value = "";
     document.getElementById("customCategory").disabled = true;
 }
+
 /* DELETE */
 function deleteExpense(i) {
     expenses.splice(i, 1);
@@ -284,10 +285,10 @@ function deleteExpense(i) {
 /* EDIT */
 function editExpense(i) {
     const e = expenses[i];
-    nameInput.value = e.name;
-    amountInput.value = e.amount;
-    dateInput.value = e.date;
-    category.value = e.category;
+    document.getElementById("name").value = e.name;
+    document.getElementById("amount").value = e.amount;
+    document.getElementById("date").value = e.date;
+    document.getElementById("category").value = e.category;
     editingIndex = i;
 }
 
@@ -295,11 +296,20 @@ function editExpense(i) {
 function render() {
     const list = document.getElementById("list");
     const total = document.getElementById("total");
+    const search = document.getElementById("searchInput").value?.toLowerCase() || "";
 
     list.innerHTML = "";
     let sum = 0;
 
     expenses.forEach((e, i) => {
+
+        const match =
+            e.name.toLowerCase().includes(search) ||
+            e.category.toLowerCase().includes(search) ||
+            e.date.includes(search);
+
+        if (search && !match) return;
+
         sum += e.amount;
 
         const div = document.createElement("div");
@@ -341,6 +351,7 @@ function drawCharts() {
     if (lineChart) lineChart.destroy();
     if (pieChart) pieChart.destroy();
 
+    /* LINE (GREEN) */
     lineChart = new Chart(lineChartCtx, {
         type: "line",
         data: {
@@ -361,13 +372,17 @@ function drawCharts() {
         }
     });
 
+    /* PIE (CIRCLE FIXED) */
     pieChart = new Chart(pieChartCtx, {
         type: "pie",
         data: {
             labels: Object.keys(catMap),
             datasets: [{
                 data: Object.values(catMap),
-                backgroundColor: ["#66bb6a","#42a5f5","#ffa726","#ab47bc","#ef5350"]
+                backgroundColor: [
+                    "#66bb6a","#42a5f5","#ffa726",
+                    "#ab47bc","#ef5350","#26c6da"
+                ]
             }]
         },
         options: {
@@ -381,6 +396,8 @@ function drawCharts() {
 /* INIT */
 const lineChartCtx = document.getElementById("lineChart").getContext("2d");
 const pieChartCtx = document.getElementById("pieChart").getContext("2d");
+
+document.getElementById("searchInput").addEventListener("input", render);
 
 render();
 </script>
