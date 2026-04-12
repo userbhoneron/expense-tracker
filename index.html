@@ -8,16 +8,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-* { box-sizing: border-box; }
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f4f4f4}
+body.dark{background:#121212;color:#eee}
 
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #f4f4f4;
-}
-body.dark { background:#121212; color:#eee; }
-
-.container {
+.container{
     max-width:520px;
     width:95%;
     margin:20px auto;
@@ -25,22 +20,17 @@ body.dark { background:#121212; color:#eee; }
     padding:15px;
     border-radius:12px;
 }
-body.dark .container { background:#1e1e1e; }
+body.dark .container{background:#1e1e1e}
 
-input, select {
+input,select,textarea{
     width:100%;
     padding:10px;
     margin-top:6px;
     border-radius:8px;
     border:1px solid #ccc;
 }
-body.dark input, body.dark select {
-    background:#2c2c2c;
-    color:white;
-    border:1px solid #444;
-}
 
-.add {
+.add{
     width:100%;
     padding:12px;
     margin-top:8px;
@@ -51,89 +41,77 @@ body.dark input, body.dark select {
     font-weight:bold;
 }
 
-.fab {
+/* FAB */
+.fab{
     position:fixed;
     right:15px;
-    width:45px;
-    height:45px;
+    width:45px;height:45px;
     border-radius:50%;
     border:none;
 }
-#darkBtn { top:15px; background:#2e7d32; color:white; }
-#searchBtn { top:70px; background:#43a047; color:white; }
-#reportBtn { top:125px; background:#1e88e5; color:white; }
+#darkBtn{top:15px;background:#2e7d32;color:white}
+#searchBtn{top:70px;background:#43a047;color:white}
+#reportBtn{top:125px;background:#1e88e5;color:white}
+#notesBtn{bottom:20px;background:#fbc02d}
 
-.searchBox { display:none; margin-bottom:10px; }
+/* Search */
+.searchBox{display:none}
 
 /* Swipe */
-.expense-wrapper {
+.expense-wrapper{
     position:relative;
     height:60px;
     margin-top:8px;
     overflow:hidden;
     border-radius:10px;
 }
-.delete-bg {
+.delete-bg{
     position:absolute;
     right:0;
-    width:80px;
-    height:100%;
+    width:80px;height:100%;
     background:#dc3545;
     display:flex;
     align-items:center;
     justify-content:center;
     color:white;
-    font-weight:bold;
 }
-.expense {
+.expense{
     position:absolute;
-    width:100%;
-    height:100%;
+    width:100%;height:100%;
     background:#f1f1f1;
     display:flex;
     justify-content:space-between;
     align-items:center;
     padding:10px;
 }
-body.dark .expense { background:#2a2a2a; }
 
-canvas { width:100% !important; max-height:260px; }
+/* Buttons */
+.editBtn{background:#fbc02d;border:none;padding:5px}
+.deleteBtn{background:#e53935;color:white;border:none;padding:5px}
 
-/* ===== RESPONSIVE MODAL ===== */
-#reportModal{
+/* Modal */
+.modal{
     position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
+    top:0;left:0;
+    width:100%;height:100%;
     background:rgba(0,0,0,0.6);
     display:none;
     justify-content:center;
     align-items:center;
     padding:10px;
 }
-
-#reportBox{
+.box{
     background:white;
     width:100%;
     max-width:600px;
     max-height:90vh;
-    overflow-y:auto;
+    overflow:auto;
     padding:15px;
     border-radius:12px;
 }
+body.dark .box{background:#1e1e1e}
 
-body.dark #reportBox{
-    background:#1e1e1e;
-}
-
-@media (max-width: 480px){
-    #reportBox{
-        max-width:100%;
-        height:95vh;
-        border-radius:10px;
-    }
-}
+canvas{width:100%!important;max-height:260px}
 </style>
 </head>
 
@@ -142,18 +120,19 @@ body.dark #reportBox{
 <button id="darkBtn" class="fab" onclick="toggleDark()">🌙</button>
 <button id="searchBtn" class="fab" onclick="toggleSearch()">🔍</button>
 <button id="reportBtn" class="fab" onclick="toggleReport()">📊</button>
+<button id="notesBtn" class="fab" onclick="toggleNotes()">📝</button>
 
 <div class="container">
 
 <h2>Expense Tracker</h2>
 
-<div class="searchBox" id="searchBox">
-    <input id="searchInput" placeholder="Search name...">
-    <select id="filterCategory"></select>
-    <input id="fromDate" type="date">
-    <input id="toDate" type="date">
-    <input id="minAmount" type="number" placeholder="Min Amount">
-    <input id="maxAmount" type="number" placeholder="Max Amount">
+<div id="searchBox" class="searchBox">
+<input id="searchInput" placeholder="Search">
+<select id="filterCategory"></select>
+<input id="fromDate" type="date">
+<input id="toDate" type="date">
+<input id="minAmount" type="number" placeholder="Min">
+<input id="maxAmount" type="number" placeholder="Max">
 </div>
 
 <input id="name" placeholder="Name">
@@ -161,12 +140,12 @@ body.dark #reportBox{
 <input id="date" type="date">
 
 <select id="category">
-    <option>Food</option>
-    <option>Transport</option>
-    <option>Shopping</option>
-    <option>Bills</option>
-    <option>Entertainment</option>
-    <option>Other</option>
+<option>Food</option>
+<option>Transport</option>
+<option>Shopping</option>
+<option>Bills</option>
+<option>Entertainment</option>
+<option>Other</option>
 </select>
 
 <input id="customCategory" placeholder="Custom Category" disabled>
@@ -184,84 +163,75 @@ body.dark #reportBox{
 
 </div>
 
-<!-- REPORT MODAL -->
-<div id="reportModal">
-<div id="reportBox">
-
-<div style="position:sticky; top:0; background:inherit;">
-    <h3>Generate Report</h3>
-</div>
+<!-- REPORT -->
+<div id="reportModal" class="modal">
+<div class="box">
+<h3>Report</h3>
 
 <input id="rFrom" type="date">
 <input id="rTo" type="date">
-
 <select id="rCategory"></select>
-
-<input id="rMin" type="number" placeholder="Min Amount">
-<input id="rMax" type="number" placeholder="Max Amount">
+<input id="rMin" type="number" placeholder="Min">
+<input id="rMax" type="number" placeholder="Max">
 
 <button class="add" onclick="generateReport()">Generate</button>
 
-<hr>
-
 <div id="reportOutput"></div>
 
-<h4>Trend</h4>
 <canvas id="reportLine"></canvas>
-
-<h4>Category Breakdown</h4>
 <canvas id="reportPie"></canvas>
 
-<button class="add" onclick="toggleReport()">Close</button>
+<button onclick="toggleReport()">Close</button>
+</div>
+</div>
 
+<!-- NOTES -->
+<div id="notesModal" class="modal">
+<div class="box">
+<h3>Notes</h3>
+
+<textarea id="notesArea" rows="6"></textarea>
+<button class="add" onclick="saveNotes()">Save</button>
+
+<hr>
+<div id="autoNotes"></div>
+
+<button onclick="toggleNotes()">Close</button>
 </div>
 </div>
 
 <script>
-let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-let lineChart, pieChart, reportLineChart, reportPieChart;
-let searchActive=false;
+let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
+let notes=localStorage.getItem("notes")||"";
 
-const lineChartCanvas=document.getElementById("lineChart");
-const pieChartCanvas=document.getElementById("pieChart");
+let lineChart,pieChart,reportLineChart,reportPieChart;
 
-function toggleDark(){ document.body.classList.toggle("dark"); }
-
+function toggleDark(){document.body.classList.toggle("dark")}
 function toggleSearch(){
-    searchActive=!searchActive;
-    searchBox.style.display=searchActive?"block":"none";
-    render();
+    searchBox.style.display=searchBox.style.display==="block"?"none":"block";
 }
 
-category.addEventListener("change",()=>{
-    customCategory.disabled = category.value!=="Other";
-});
+category.onchange=()=>{
+    customCategory.disabled=category.value!=="Other";
+}
 
 function addExpense(){
-    let cat=category.value;
-    if(cat==="Other" && customCategory.value){
-        cat=customCategory.value;
-    }
+    let cat=category.value==="Other"?customCategory.value:category.value;
+    if(!name.value||!amount.value||!date.value)return;
 
-    if(!name.value||!amount.value||!date.value) return alert("Fill all");
-
-    expenses.push({
-        name:name.value,
-        amount:+amount.value,
-        date:date.value,
-        category:cat
-    });
-
+    expenses.push({name:name.value,amount:+amount.value,date:date.value,category:cat});
     localStorage.setItem("expenses",JSON.stringify(expenses));
 
-    name.value=""; amount.value=""; date.value=""; customCategory.value="";
+    name.value="";amount.value="";date.value="";customCategory.value="";
     render();
 }
 
 function deleteExpense(i){
-    expenses.splice(i,1);
-    localStorage.setItem("expenses",JSON.stringify(expenses));
-    render();
+    if(confirm("Delete this expense?")){
+        expenses.splice(i,1);
+        localStorage.setItem("expenses",JSON.stringify(expenses));
+        render();
+    }
 }
 
 function editExpense(i){
@@ -276,23 +246,10 @@ function render(){
     list.innerHTML="";
     let sum=0;
 
-    const text=searchInput.value.toLowerCase();
-    const cat=filterCategory.value;
-    const from=fromDate.value;
-    const to=toDate.value;
-    const min=+minAmount.value||0;
-    const max=+maxAmount.value||Infinity;
+    const text=searchInput.value?.toLowerCase()||"";
 
     expenses.forEach((e,i)=>{
-
-        const match=
-            (!text||e.name.toLowerCase().includes(text)) &&
-            (!cat||e.category===cat) &&
-            (!from||e.date>=from) &&
-            (!to||e.date<=to) &&
-            (e.amount>=min && e.amount<=max);
-
-        if(searchActive && !match) return;
+        if(text && !e.name.toLowerCase().includes(text)) return;
 
         sum+=e.amount;
 
@@ -300,28 +257,19 @@ function render(){
         <div class="expense-wrapper">
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
             <div class="expense">
-                <div>
-                    <b>${e.name}</b><br>
-                    <small>${e.date} • ${e.category}</small>
-                </div>
+                <div><b>${e.name}</b><br>${e.date} • ${e.category}</div>
                 <div>
                     ${e.amount}
-                    <button onclick="editExpense(${i})">Edit</button>
+                    <button class="editBtn" onclick="editExpense(${i})">Edit</button>
+                    <button class="deleteBtn" onclick="deleteExpense(${i})">Del</button>
                 </div>
             </div>
         </div>`;
     });
 
-    total.innerText="Total: "+sum.toFixed(2);
+    total.innerText="Total: "+sum;
 
-    loadFilterCategories();
     drawCharts();
-}
-
-function loadFilterCategories(){
-    const cats=[...new Set(expenses.map(e=>e.category))];
-    filterCategory.innerHTML='<option value="">All Categories</option>';
-    cats.forEach(c=>filterCategory.innerHTML+=`<option>${c}</option>`);
 }
 
 function drawCharts(){
@@ -332,15 +280,12 @@ function drawCharts(){
         catMap[e.category]=(catMap[e.category]||0)+e.amount;
     });
 
-    const dates=Object.keys(dateMap).sort();
-    const values=dates.map(d=>dateMap[d]);
-
-    if(lineChart) lineChart.destroy();
-    if(pieChart) pieChart.destroy();
+    if(lineChart)lineChart.destroy();
+    if(pieChart)pieChart.destroy();
 
     lineChart=new Chart(lineChartCanvas,{
         type:"line",
-        data:{labels:dates,datasets:[{data:values,fill:true}]}
+        data:{labels:Object.keys(dateMap),datasets:[{data:Object.values(dateMap)}]}
     });
 
     pieChart=new Chart(pieChartCanvas,{
@@ -350,58 +295,50 @@ function drawCharts(){
 }
 
 function toggleReport(){
-    reportModal.style.display =
-        reportModal.style.display==="flex"?"none":"flex";
-
-    const cats=[...new Set(expenses.map(e=>e.category))];
-    rCategory.innerHTML='<option value="">All Categories</option>';
-    cats.forEach(c=>rCategory.innerHTML+=`<option>${c}</option>`);
+    reportModal.style.display=reportModal.style.display==="flex"?"none":"flex";
 }
 
 function generateReport(){
-
     const filtered=expenses.filter(e=>{
-        return (
-            (!rFrom.value||e.date>=rFrom.value) &&
-            (!rTo.value||e.date<=rTo.value) &&
-            (!rCategory.value||e.category===rCategory.value) &&
-            (e.amount>=(+rMin.value||0)) &&
-            (e.amount<=(+rMax.value||Infinity))
-        );
+        return (!rFrom.value||e.date>=rFrom.value)&&
+               (!rTo.value||e.date<=rTo.value);
     });
 
-    if(filtered.length===0){
-        reportOutput.innerHTML="No data";
-        if(reportLineChart) reportLineChart.destroy();
-        if(reportPieChart) reportPieChart.destroy();
-        return;
-    }
+    reportOutput.innerText="Entries: "+filtered.length;
 
-    let total=0, catMap={}, dateMap={};
+    if(reportLineChart)reportLineChart.destroy();
+    if(reportPieChart)reportPieChart.destroy();
 
-    filtered.forEach(e=>{
-        total+=e.amount;
-        catMap[e.category]=(catMap[e.category]||0)+e.amount;
-        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
-    });
-
-    reportOutput.innerHTML=`Total: ${total.toFixed(2)} | Entries: ${filtered.length}`;
-
-    const dates=Object.keys(dateMap).sort();
-    const values=dates.map(d=>dateMap[d]);
-
-    if(reportLineChart) reportLineChart.destroy();
     reportLineChart=new Chart(reportLine,{
         type:"line",
-        data:{labels:dates,datasets:[{data:values,fill:true}]}
+        data:{labels:filtered.map(e=>e.date),datasets:[{data:filtered.map(e=>e.amount)}]}
     });
 
-    if(reportPieChart) reportPieChart.destroy();
     reportPieChart=new Chart(reportPie,{
         type:"pie",
-        data:{labels:Object.keys(catMap),datasets:[{data:Object.values(catMap)}]}
+        data:{labels:filtered.map(e=>e.category),datasets:[{data:filtered.map(e=>e.amount)}]}
     });
 }
+
+function toggleNotes(){
+    notesModal.style.display=notesModal.style.display==="flex"?"none":"flex";
+    notesArea.value=notes;
+    generateInsights();
+}
+
+function saveNotes(){
+    notes=notesArea.value;
+    localStorage.setItem("notes",notes);
+}
+
+function generateInsights(){
+    const last=expenses.slice(-5);
+    let total=last.reduce((a,b)=>a+b.amount,0);
+    autoNotes.innerHTML="Last 5 total: "+total;
+}
+
+const lineChartCanvas=document.getElementById("lineChart");
+const pieChartCanvas=document.getElementById("pieChart");
 
 render();
 </script>
