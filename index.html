@@ -57,7 +57,7 @@ input,select,textarea{
 /* Search */
 .searchBox{display:none}
 
-/* Swipe */
+/* Swipe UI */
 .expense-wrapper{
     position:relative;
     height:60px;
@@ -188,7 +188,7 @@ canvas{width:100%!important;max-height:260px}
 <!-- NOTES -->
 <div id="notesModal" class="modal">
 <div class="box">
-<h3>Notes</h3>
+<h3>Notes & Insights</h3>
 
 <textarea id="notesArea" rows="6"></textarea>
 <button class="add" onclick="saveNotes()">Save</button>
@@ -207,6 +207,7 @@ let notes=localStorage.getItem("notes")||"";
 let lineChart,pieChart,reportLineChart,reportPieChart;
 
 function toggleDark(){document.body.classList.toggle("dark")}
+
 function toggleSearch(){
     searchBox.style.display=searchBox.style.display==="block"?"none":"block";
 }
@@ -269,7 +270,14 @@ function render(){
 
     total.innerText="Total: "+sum;
 
+    loadFilterCategories();
     drawCharts();
+}
+
+function loadFilterCategories(){
+    const cats=[...new Set(expenses.map(e=>e.category))];
+    filterCategory.innerHTML='<option value="">All</option>';
+    cats.forEach(c=>filterCategory.innerHTML+=`<option>${c}</option>`);
 }
 
 function drawCharts(){
@@ -296,28 +304,70 @@ function drawCharts(){
 
 function toggleReport(){
     reportModal.style.display=reportModal.style.display==="flex"?"none":"flex";
+
+    const cats=[...new Set(expenses.map(e=>e.category))];
+    rCategory.innerHTML='<option value="">All</option>';
+    cats.forEach(c=>rCategory.innerHTML+=`<option>${c}</option>`);
 }
 
 function generateReport(){
     const filtered=expenses.filter(e=>{
         return (!rFrom.value||e.date>=rFrom.value)&&
-               (!rTo.value||e.date<=rTo.value);
+               (!rTo.value||e.date<=rTo.value)&&
+               (!rCategory.value||e.category===rCategory.value)&&
+               (e.amount>=(+rMin.value||0))&&
+               (e.amount<=(+rMax.value||Infinity));
     });
 
-    reportOutput.innerText="Entries: "+filtered.length;
+    if(filtered.length===0){
+        reportOutput.innerHTML="No data";
+        return;
+    }
+
+    const last5=filtered.slice(-5);
+    const last5Total=last5.reduce((a,b)=>a+b.amount,0);
+
+    reportOutput.innerHTML=`Entries: ${filtered.length}<br>Last 5 total: ${last5Total}`;
+
+    const dateMap={},catMap={};
+    filtered.forEach(e=>{
+        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
+        catMap[e.category]=(catMap[e.category]||0)+e.amount;
+    });
 
     if(reportLineChart)reportLineChart.destroy();
     if(reportPieChart)reportPieChart.destroy();
 
     reportLineChart=new Chart(reportLine,{
         type:"line",
-        data:{labels:filtered.map(e=>e.date),datasets:[{data:filtered.map(e=>e.amount)}]}
+        data:{labels:Object.keys(dateMap),datasets:[{data:Object.values(dateMap)}]}
     });
 
     reportPieChart=new Chart(reportPie,{
         type:"pie",
-        data:{labels:filtered.map(e=>e.category),datasets:[{data:filtered.map(e=>e.amount)}]}
+        data:{labels:Object.keys(catMap),datasets:[{data:Object.values(catMap)}]}
     });
+}
+
+/* INSIGHTS */
+function generateInsights(){
+    const last5=expenses.slice(-5);
+    const prev5=expenses.slice(-10,-5);
+
+    const lastTotal=last5.reduce((a,b)=>a+b.amount,0);
+    const prevTotal=prev5.reduce((a,b)=>a+b.amount,0);
+
+    let msg=`Last 5 total: ${lastTotal}<br>`;
+
+    if(prev5.length){
+        const diff=lastTotal-prevTotal;
+        msg+=`Previous: ${prevTotal}<br>`;
+        msg+= diff>0?`📈 Increased by ${diff}`:
+              diff<0?`📉 Decreased by ${Math.abs(diff)}`:
+              `No change`;
+    }
+
+    autoNotes.innerHTML=msg;
 }
 
 function toggleNotes(){
@@ -329,12 +379,6 @@ function toggleNotes(){
 function saveNotes(){
     notes=notesArea.value;
     localStorage.setItem("notes",notes);
-}
-
-function generateInsights(){
-    const last=expenses.slice(-5);
-    let total=last.reduce((a,b)=>a+b.amount,0);
-    autoNotes.innerHTML="Last 5 total: "+total;
 }
 
 const lineChartCanvas=document.getElementById("lineChart");
