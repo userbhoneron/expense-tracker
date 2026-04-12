@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Expense Tracker Pro</title>
 
-<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -14,63 +14,95 @@ body {
     margin: 0;
     font-family: Arial;
     background: #f4f4f4;
+    transition: 0.3s;
+}
+
+body.dark {
+    background: #121212;
+    color: #eee;
 }
 
 .container {
+    width: 95%;
     max-width: 520px;
-    margin: 20px auto;
+    margin: 10px auto;
     background: white;
     padding: 15px;
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+body.dark .container {
+    background: #1e1e1e;
+}
+
 h2 { margin-top: 0; }
 
-input {
+input, select {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 6px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+body.dark input,
+body.dark select {
+    background: #2c2c2c;
+    color: white;
+    border: 1px solid #444;
 }
 
 button {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 8px;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
+    font-size: 16px;
 }
 
 .add { background: #28a745; color: white; }
 
+.toggle {
+    background: #333;
+    color: white;
+}
+
 .expense {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     background: #f1f1f1;
-    padding: 8px;
-    margin-top: 6px;
-    border-radius: 6px;
+    padding: 10px;
+    margin-top: 8px;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+body.dark .expense {
+    background: #2a2a2a;
+}
+
+.expense small {
+    display: block;
+    opacity: 0.7;
 }
 
 .del {
     background: #dc3545;
     color: white;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 5px;
-    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
 }
 
 .edit {
     background: #ffc107;
-    border: none;
-    padding: 5px 8px;
-    border-radius: 5px;
-    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
     margin-right: 5px;
 }
 
@@ -78,10 +110,6 @@ button {
     text-align: right;
     font-weight: bold;
     margin-top: 10px;
-}
-
-.graph {
-    margin-top: 15px;
 }
 
 canvas {
@@ -96,54 +124,94 @@ canvas {
 <div class="container">
     <h2>Expense Tracker</h2>
 
+    <button class="toggle" onclick="toggleDark()">🌙 Toggle Dark Mode</button>
+
     <input id="name" placeholder="Name">
     <input id="amount" type="number" placeholder="Amount">
     <input id="date" type="date">
+
+    <!-- CATEGORY -->
+    <select id="category" onchange="handleCategory()">
+        <option value="">Select Category</option>
+        <option>Food</option>
+        <option>Transport</option>
+        <option>Shopping</option>
+        <option>Bills</option>
+        <option>Entertainment</option>
+        <option>Other</option>
+    </select>
+
+    <!-- CUSTOM CATEGORY -->
+    <input id="customCategory" placeholder="Custom Category (optional)" disabled>
 
     <button class="add" onclick="addExpense()">Add Expense</button>
 
     <div id="list"></div>
     <div class="total" id="total"></div>
 
-    <div class="graph">
-        <canvas id="graph"></canvas>
-    </div>
+    <canvas id="graph"></canvas>
 </div>
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-
-// 🔥 CLEAN BAD DATA
 expenses = expenses.map(e => ({
     name: e.name || "Unknown",
     amount: Number(e.amount) || 0,
-    date: e.date || ""
+    date: e.date || "",
+    category: e.category || "Other"
 }));
 
 let editingIndex = null;
 let chart;
+
+/* DARK MODE */
+function toggleDark() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+}
+
+if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark");
+}
+
+/* CATEGORY HANDLER */
+function handleCategory() {
+    const cat = document.getElementById("category").value;
+    const custom = document.getElementById("customCategory");
+
+    if (cat === "Other") {
+        custom.disabled = false;
+    } else {
+        custom.disabled = true;
+        custom.value = "";
+    }
+}
 
 /* SAVE */
 function save() {
     localStorage.setItem("expenses", JSON.stringify(expenses));
 }
 
-/* ADD / EDIT */
+/* ADD */
 function addExpense() {
     const name = document.getElementById("name").value.trim();
     const amount = parseFloat(document.getElementById("amount").value);
     const date = document.getElementById("date").value;
+    const category = document.getElementById("category").value;
+    const custom = document.getElementById("customCategory").value.trim();
 
-    if (!name || isNaN(amount) || !date) {
-        alert("Please fill all fields correctly");
+    if (!name || isNaN(amount) || !date || !category) {
+        alert("Fill all required fields");
         return;
     }
 
+    const finalCategory = category === "Other" && custom ? custom : category;
+
     if (editingIndex !== null) {
-        expenses[editingIndex] = { name, amount, date };
+        expenses[editingIndex] = { name, amount, date, category: finalCategory };
         editingIndex = null;
     } else {
-        expenses.push({ name, amount, date });
+        expenses.push({ name, amount, date, category: finalCategory });
     }
 
     save();
@@ -151,11 +219,14 @@ function addExpense() {
     render();
 }
 
-/* CLEAR INPUTS */
+/* CLEAR */
 function clearInputs() {
     document.getElementById("name").value = "";
     document.getElementById("amount").value = "";
     document.getElementById("date").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("customCategory").value = "";
+    document.getElementById("customCategory").disabled = true;
 }
 
 /* DELETE */
@@ -171,6 +242,7 @@ function editExpense(i) {
     document.getElementById("name").value = e.name;
     document.getElementById("amount").value = e.amount;
     document.getElementById("date").value = e.date;
+    document.getElementById("category").value = e.category;
     editingIndex = i;
 }
 
@@ -180,7 +252,6 @@ function render() {
     const total = document.getElementById("total");
 
     list.innerHTML = "";
-
     let sum = 0;
 
     expenses.forEach((e, i) => {
@@ -191,8 +262,8 @@ function render() {
 
         div.innerHTML = `
             <div>
-                <b>${e.name}</b><br>
-                <small>${e.date}</small>
+                <b>${e.name}</b>
+                <small>${e.date} • ${e.category}</small>
             </div>
             <div>
                 ${e.amount.toFixed(2)}
@@ -205,23 +276,20 @@ function render() {
     });
 
     total.innerText = "Total: " + sum.toFixed(2);
-
     drawGraph();
 }
 
-/* GRAPH (Chart.js) */
+/* GRAPH */
 function drawGraph() {
     const ctx = document.getElementById("graph").getContext("2d");
-
     if (chart) chart.destroy();
 
     if (expenses.length === 0) return;
 
-    // 🔥 GROUP SAME DATES
     const grouped = {};
     expenses.forEach(e => {
         if (!grouped[e.date]) grouped[e.date] = 0;
-        grouped[e.date] += Number(e.amount);
+        grouped[e.date] += e.amount;
     });
 
     const dates = Object.keys(grouped).sort();
@@ -235,31 +303,17 @@ function drawGraph() {
                 data: values,
                 borderColor: "green",
                 backgroundColor: "rgba(0,128,0,0.2)",
-                tension: 0.3,
                 fill: true,
-                pointRadius: 5,
-                pointBackgroundColor: "green"
+                tension: 0.3,
+                pointRadius: 5
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { display: false }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: "Date"
-                    }
-                },
-                y: {
-                    title: {
-                        display: true,
-                        text: "Amount"
-                    },
-                    beginAtZero: true
-                }
+                x: { title: { display: true, text: "Date" } },
+                y: { title: { display: true, text: "Amount" }, beginAtZero: true }
             }
         }
     });
