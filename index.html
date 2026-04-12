@@ -351,36 +351,56 @@ function render(){
 
 /* CHARTS */
 function drawCharts(){
-    const dateMap={},catMap={};
+    const dateMap = {};
+    const catMap = {};
 
-    expenses.forEach(e=>{
-        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
-        catMap[e.category]=(catMap[e.category]||0)+e.amount;
+    expenses.forEach(e => {
+        // LINE GRAPH = ONLY DATE TOTALS (NO CATEGORY INVOLVED)
+        dateMap[e.date] = (dateMap[e.date] || 0) + e.amount;
+
+        // PIE GRAPH = CATEGORY BREAKDOWN (UNCHANGED)
+        catMap[e.category] = (catMap[e.category] || 0) + e.amount;
     });
 
-    const dates=Object.keys(dateMap).sort();
-    const values=dates.map(d=>dateMap[d]);
+    const dates = Object.keys(dateMap).sort();
+    const values = dates.map(d => dateMap[d]);
 
-    if(lineChart)lineChart.destroy();
-    if(pieChart)pieChart.destroy();
+    if (lineChart) lineChart.destroy();
+    if (pieChart) pieChart.destroy();
 
-    lineChart=new Chart(lineChartCtx,{
+    /* LINE (DATE TOTAL ONLY) */
+    lineChart = new Chart(lineChartCtx,{
         type:"line",
-        data:{labels:dates,datasets:[{
-            data:values,
-            borderColor:"green",
-            backgroundColor:"rgba(0,128,0,0.2)",
-            fill:true,
-            tension:0.3
-        }]}
+        data:{
+            labels:dates,
+            datasets:[{
+                data:values,
+                borderColor:"green",
+                backgroundColor:"rgba(0,128,0,0.2)",
+                fill:true,
+                tension:0.3,
+                pointRadius:4,
+                pointBackgroundColor:"green"
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false
+        }
     });
 
-    pieChart=new Chart(pieChartCtx,{
+    /* PIE (CATEGORY ONLY) */
+    pieChart = new Chart(pieChartCtx,{
         type:"pie",
-        data:{labels:Object.keys(catMap),datasets:[{
-            data:Object.values(catMap)
-        }]},
-        options:{aspectRatio:1}
+        data:{
+            labels:Object.keys(catMap),
+            datasets:[{
+                data:Object.values(catMap)
+            }]
+        },
+        options:{
+            aspectRatio:1
+        }
     });
 }
 
