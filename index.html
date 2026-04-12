@@ -14,85 +14,76 @@ body {
     margin: 0;
     font-family: Arial;
     background: #f4f4f4;
-    transition: 0.3s;
 }
 
-body.dark {
-    background: #121212;
-    color: #eee;
-}
+body.dark { background:#121212; color:#eee; }
 
 .container {
-    max-width: 520px;
-    width: 95%;
-    margin: 20px auto;
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
+    max-width:520px;
+    width:95%;
+    margin:20px auto;
+    background:white;
+    padding:15px;
+    border-radius:12px;
 }
 
-body.dark .container {
-    background: #1e1e1e;
-}
+body.dark .container { background:#1e1e1e; }
 
 input, select {
-    width: 100%;
-    padding: 12px;
-    margin-top: 6px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    border-radius:8px;
+    border:1px solid #ccc;
 }
 
 body.dark input, body.dark select {
-    background: #2c2c2c;
-    color: white;
-    border: 1px solid #444;
+    background:#2c2c2c;
+    color:white;
+    border:1px solid #444;
 }
 
 .add {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    border: none;
-    border-radius: 8px;
-    background: #66bb6a;
-    color: white;
-    font-weight: bold;
+    width:100%;
+    padding:12px;
+    margin-top:8px;
+    border:none;
+    border-radius:8px;
+    background:#66bb6a;
+    color:white;
+    font-weight:bold;
 }
 
-/* FLOATING BUTTONS */
 .fab {
-    position: fixed;
-    right: 15px;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
+    position:fixed;
+    right:15px;
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    border:none;
 }
 
-#darkBtn { top: 15px; background:#2e7d32; color:white; }
-#searchBtn { top: 70px; background:#43a047; color:white; }
-#reportBtn { top: 125px; background:#1e88e5; color:white; }
+#darkBtn { top:15px; background:#2e7d32; color:white; }
+#searchBtn { top:70px; background:#43a047; color:white; }
+#reportBtn { top:125px; background:#1e88e5; color:white; }
 
-/* SEARCH */
 .searchBox { display:none; margin-bottom:10px; }
 
-/* EXPENSE */
+/* SWIPE */
 .expense-wrapper {
-    position: relative;
-    height: 60px;
-    margin-top: 8px;
-    overflow: hidden;
-    border-radius: 10px;
+    position:relative;
+    height:60px;
+    margin-top:8px;
+    overflow:hidden;
+    border-radius:10px;
 }
 
 .delete-bg {
-    position: absolute;
-    right: 0;
-    width: 80px;
-    height: 100%;
-    background: #e53935;
+    position:absolute;
+    right:0;
+    width:80px;
+    height:100%;
+    background:#dc3545;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -114,8 +105,9 @@ body.dark input, body.dark select {
 
 body.dark .expense { background:#2a2a2a; }
 
-/* REPORT MODAL */
-#reportModal {
+canvas { width:100% !important; max-height:260px; }
+
+#reportModal{
     position:fixed;
     top:0;left:0;
     width:100%;height:100%;
@@ -125,14 +117,13 @@ body.dark .expense { background:#2a2a2a; }
     align-items:center;
 }
 
-#reportBox {
+#reportBox{
     background:white;
     width:90%;
     max-width:420px;
     padding:15px;
     border-radius:12px;
 }
-canvas { width:100% !important; max-height:260px; }
 </style>
 </head>
 
@@ -147,14 +138,48 @@ canvas { width:100% !important; max-height:260px; }
 <h2>Expense Tracker</h2>
 
 <div class="searchBox" id="searchBox">
-    <input id="searchInput" placeholder="Search...">
+    <input id="searchInput" placeholder="Search name...">
+
+    <select id="filterCategory">
+        <option value="">All Categories</option>
+    </select>
+
+    <select id="filterMonth">
+        <option value="">All Months</option>
+        <option value="01">January</option>
+        <option value="02">February</option>
+        <option value="03">March</option>
+        <option value="04">April</option>
+        <option value="05">May</option>
+        <option value="06">June</option>
+        <option value="07">July</option>
+        <option value="08">August</option>
+        <option value="09">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+    </select>
+
+    <input id="fromDate" type="date">
+    <input id="toDate" type="date">
+
+    <input id="minAmount" type="number" placeholder="Min Amount">
+    <input id="maxAmount" type="number" placeholder="Max Amount">
 </div>
 
 <input id="name" placeholder="Name">
 <input id="amount" type="number" placeholder="Amount">
 <input id="date" type="date">
 
-<select id="category" onchange="handleCategory()"></select>
+<select id="category">
+    <option>Food</option>
+    <option>Transport</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Entertainment</option>
+    <option>Other</option>
+</select>
+
 <input id="customCategory" placeholder="Custom Category" disabled>
 
 <button class="add" onclick="addExpense()">Add Expense</button>
@@ -165,214 +190,196 @@ canvas { width:100% !important; max-height:260px; }
 <h4>Trend</h4>
 <canvas id="lineChart"></canvas>
 
-<h4>Category</h4>
+<h4>Category Breakdown</h4>
 <canvas id="pieChart"></canvas>
 
 </div>
 
-<!-- REPORT -->
 <div id="reportModal">
 <div id="reportBox">
-
-<!-- STEP 1 FORM -->
-<div id="reportForm">
-<h3>📊 Report Builder</h3>
-
-<select id="rYear"></select>
-<select id="rMonth">
-<option value="">All Months</option>
-<option value="01">Jan</option>
-<option value="02">Feb</option>
-<option value="03">Mar</option>
-<option value="04">Apr</option>
-<option value="05">May</option>
-<option value="06">Jun</option>
-<option value="07">Jul</option>
-<option value="08">Aug</option>
-<option value="09">Sep</option>
-<option value="10">Oct</option>
-<option value="11">Nov</option>
-<option value="12">Dec</option>
-</select>
-
-<select id="rCategory"></select>
-
-<input id="rMin" type="number" placeholder="Min Price">
-<input id="rMax" type="number" placeholder="Max Price">
-<input id="rStart" type="date">
-<input id="rEnd" type="date">
-
-<button class="add" onclick="generateReport()">Generate Report</button>
-<button onclick="toggleReport()" class="del" style="margin-top:10px;width:100%;">Close</button>
-</div>
-
-<!-- STEP 2 RESULTS -->
-<div id="reportResult" style="display:none;">
-<h3>📊 Report Results</h3>
-
-<div id="reportSummary"></div>
-
-<h4>Category Pie</h4>
-<canvas id="reportPie"></canvas>
-
-<h4>Expenses</h4>
-<div id="reportList"></div>
-
-<button class="add" onclick="backToForm()">Back</button>
-</div>
-
+<h3>Report</h3>
+<div id="reportOutput"></div>
+<button class="add" onclick="toggleReport()">Close</button>
 </div>
 </div>
 
 <script>
 let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-let customCategories = JSON.parse(localStorage.getItem("customCategories")) || [];
+let lineChart, pieChart;
+let searchActive = false;
 
-let lineChart, pieChart, reportPie;
-
-/* INIT */
-loadCategories();
-
-/* CATEGORIES */
-function loadCategories(){
-    const base=["Food","Transport","Shopping","Bills","Other"];
-    const sel=document.getElementById("category");
-    sel.innerHTML="";
-    base.forEach(c=>sel.innerHTML+=`<option>${c}</option>`);
+function toggleDark(){
+    document.body.classList.toggle("dark");
 }
 
-/* DARK */
-function toggleDark(){ document.body.classList.toggle("dark"); }
-
-/* SEARCH */
 function toggleSearch(){
-    const box=document.getElementById("searchBox");
-    box.style.display = box.style.display==="block"?"none":"block";
-    document.getElementById("searchInput").value="";
+    searchActive = !searchActive;
+    searchBox.style.display = searchActive ? "block" : "none";
+    if(!searchActive){
+        searchInput.value="";
+    }
     render();
 }
 
-/* REPORT */
-function toggleReport(){
-    const m=document.getElementById("reportModal");
-    m.style.display = m.style.display==="flex"?"none":"flex";
-    document.getElementById("reportForm").style.display="block";
-    document.getElementById("reportResult").style.display="none";
-}
+category.addEventListener("change",()=>{
+    customCategory.disabled = category.value !== "Other";
+});
 
-/* SWITCH */
-function backToForm(){
-    document.getElementById("reportForm").style.display="block";
-    document.getElementById("reportResult").style.display="none";
-}
-
-/* ADD */
 function addExpense(){
+    let cat = category.value;
+    if(cat==="Other" && customCategory.value){
+        cat = customCategory.value;
+    }
+
+    if(!name.value||!amount.value||!date.value) return alert("Fill all");
+
     expenses.push({
         name:name.value,
         amount:+amount.value,
         date:date.value,
-        category:category.value
+        category:cat
     });
+
     localStorage.setItem("expenses",JSON.stringify(expenses));
+
+    name.value="";
+    amount.value="";
+    date.value="";
+    customCategory.value="";
+
     render();
 }
 
-/* DELETE */
 function deleteExpense(i){
     expenses.splice(i,1);
     localStorage.setItem("expenses",JSON.stringify(expenses));
     render();
 }
 
-/* EDIT */
 function editExpense(i){
-    let e=expenses[i];
+    const e=expenses[i];
     name.value=e.name;
     amount.value=e.amount;
     date.value=e.date;
     category.value=e.category;
 }
 
-/* RENDER */
 function render(){
-    const list=document.getElementById("list");
-    const search=(searchInput?.value||"").toLowerCase();
-
     list.innerHTML="";
-    let total=0;
+    let sum=0;
+
+    const text = searchInput.value.toLowerCase();
+    const cat = filterCategory.value;
+    const month = filterMonth.value;
+    const from = fromDate.value;
+    const to = toDate.value;
+    const min = +minAmount.value || 0;
+    const max = +maxAmount.value || Infinity;
 
     expenses.forEach((e,i)=>{
-        if(search && !e.name.toLowerCase().includes(search)) return;
 
-        total+=e.amount;
+        const expenseMonth = e.date.split("-")[1];
+
+        const match =
+            (!text || e.name.toLowerCase().includes(text)) &&
+            (!cat || e.category===cat) &&
+            (!month || expenseMonth===month) &&
+            (!from || e.date>=from) &&
+            (!to || e.date<=to) &&
+            (e.amount>=min && e.amount<=max);
+
+        if(searchActive && !match) return;
+
+        sum+=e.amount;
 
         list.innerHTML+=`
         <div class="expense-wrapper">
             <div class="delete-bg" onclick="deleteExpense(${i})">X</div>
+
             <div class="expense">
                 <div>
                     <b>${e.name}</b><br>
                     <small>${e.date} • ${e.category}</small>
                 </div>
+
                 <div>
                     ${e.amount}
-                    <button class="edit" onclick="editExpense(${i})">Edit</button>
+                    <button onclick="editExpense(${i})">Edit</button>
                 </div>
             </div>
         </div>`;
     });
 
-    document.getElementById("total").innerText="Total: "+total;
+    total.innerText="Total: "+sum.toFixed(2);
+
+    loadFilterCategories();
     drawCharts();
 }
 
-/* REPORT ENGINE */
-function generateReport(){
-    let f=[...expenses];
+function loadFilterCategories(){
+    const cats=[...new Set(expenses.map(e=>e.category))];
+    filterCategory.innerHTML='<option value="">All Categories</option>';
+    cats.forEach(c=> filterCategory.innerHTML+=`<option>${c}</option>`);
+}
 
-    if(rCategory.value) f=f.filter(e=>e.category===rCategory.value);
-    if(rMin.value) f=f.filter(e=>e.amount>=+rMin.value);
-    if(rMax.value) f=f.filter(e=>e.amount<=+rMax.value);
+function drawCharts(){
+    const dateMap={},catMap={};
 
-    let total=0;
-    let cat={};
-
-    f.forEach(e=>{
-        total+=e.amount;
-        cat[e.category]=(cat[e.category]||0)+e.amount;
+    expenses.forEach(e=>{
+        dateMap[e.date]=(dateMap[e.date]||0)+e.amount;
+        catMap[e.category]=(catMap[e.category]||0)+e.amount;
     });
 
-    reportSummary.innerHTML=`
-    <b>Total:</b> ${total}<br>
-    <b>Items:</b> ${f.length}
+    const dates=Object.keys(dateMap).sort();
+    const values=dates.map(d=>dateMap[d]);
+
+    if(lineChart)lineChart.destroy();
+    if(pieChart)pieChart.destroy();
+
+    lineChart=new Chart(lineChart.getContext("2d"),{
+        type:"line",
+        data:{labels:dates,datasets:[{data:values}]}
+    });
+
+    pieChart=new Chart(pieChart.getContext("2d"),{
+        type:"pie",
+        data:{labels:Object.keys(catMap),datasets:[{data:Object.values(catMap)}]}
+    });
+}
+
+function toggleReport(){
+    if(reportModal.style.display==="flex"){
+        reportModal.style.display="none";
+        return;
+    }
+
+    let total=0, highest=0, lowest=Infinity, catMap={}, monthlyMap={};
+
+    expenses.forEach(e=>{
+        total+=e.amount;
+        if(e.amount>highest) highest=e.amount;
+        if(e.amount<lowest) lowest=e.amount;
+
+        catMap[e.category]=(catMap[e.category]||0)+e.amount;
+        const m=e.date.slice(0,7);
+        monthlyMap[m]=(monthlyMap[m]||0)+e.amount;
+    });
+
+    const avg = expenses.length ? (total/expenses.length).toFixed(2) : 0;
+
+    const topCategory = Object.entries(catMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
+    const topMonth = Object.entries(monthlyMap).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-";
+
+    reportOutput.innerHTML=`
+        <p>Total: ${total.toFixed(2)}</p>
+        <p>Average: ${avg}</p>
+        <p>Top Category: ${topCategory}</p>
+        <p>Top Month: ${topMonth}</p>
     `;
 
-    if(reportPie) reportPie.destroy();
-
-    reportPie=new Chart(document.getElementById("reportPie"),{
-        type:"pie",
-        data:{
-            labels:Object.keys(cat),
-            datasets:[{data:Object.values(cat)}]
-        }
-    });
-
-    reportList.innerHTML=f.map(e=>`
-    <div>${e.name} - ${e.amount}</div>
-    `).join("");
-
-    document.getElementById("reportForm").style.display="none";
-    document.getElementById("reportResult").style.display="block";
+    reportModal.style.display="flex";
 }
 
-/* CHARTS */
-function drawCharts(){
-    const ctx1=lineChartCtx.getContext("2d");
-    const ctx2=pieChartCtx.getContext("2d");
-}
-
-/* INIT */
 render();
 </script>
 
