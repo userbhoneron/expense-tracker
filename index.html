@@ -41,6 +41,9 @@ button:active{transform:scale(.95)}
 #reportBtn{top:125px;background:#1e88e5;color:white}
 #notesBtn{bottom:20px;background:#fbc02d}
 
+/* ➕ ADDED */
+#backupBtn{left:15px;bottom:20px;background:#6d4c41;color:white}
+
 /* Search */
 #searchBox{display:none}
 
@@ -90,6 +93,9 @@ canvas{width:100%!important}
 <button id="searchBtn" class="fab">🔍</button>
 <button id="reportBtn" class="fab">📊</button>
 <button id="notesBtn" class="fab">📝</button>
+
+<!-- ➕ ADDED -->
+<button id="backupBtn" class="fab">💾</button>
 
 <div class="container">
 
@@ -167,6 +173,28 @@ canvas{width:100%!important}
 <div id="autoNotes"></div>
 
 <button class="closeBtn" id="closeNotes">Close</button>
+</div>
+</div>
+
+<!-- ➕ BACKUP MODAL -->
+<div id="backupModal" class="modal">
+<div class="box">
+
+<h3>Backup & Restore</h3>
+
+<button class="closeBtn" id="closeBackupTop">Close</button>
+
+<div class="section-title">📤 Backup (Raw)</div>
+<textarea id="backupOutput" readonly style="height:120px;"></textarea>
+
+<div class="section-title">📥 Restore</div>
+<textarea id="restoreInput" placeholder="Paste backup here..."
+style="height:40px;transition:.3s;"></textarea>
+
+<button class="add" id="restoreBtn">Submit</button>
+
+<button class="closeBtn" id="closeBackup">Close</button>
+
 </div>
 </div>
 
@@ -435,6 +463,49 @@ function generateInsights(){
 
     $("autoNotes").innerHTML=msg;
 }
+
+/* =========================
+   ✅ BACKUP FEATURE (ADDED)
+========================= */
+
+$("backupBtn").onclick=()=>{
+    $("backupModal").style.display="flex";
+    $("backupOutput").value=JSON.stringify(expenses,null,2);
+};
+
+$("closeBackup").onclick=()=>{$("backupModal").style.display="none"};
+$("closeBackupTop").onclick=()=>{$("backupModal").style.display="none"};
+
+$("restoreInput").onfocus=()=>{
+    $("restoreInput").style.height="150px";
+};
+
+$("restoreBtn").onclick=()=>{
+    const txt=$("restoreInput").value.trim();
+    if(!txt){alert("Paste backup data");return;}
+
+    let data;
+    try{
+        data=JSON.parse(txt);
+        if(!Array.isArray(data)) throw "Invalid";
+    }catch{
+        alert("Invalid format");
+        return;
+    }
+
+    const choice=confirm("OK = Replace all\nCancel = Add");
+
+    if(choice){
+        expenses=data;
+    }else{
+        expenses=[...expenses,...data];
+    }
+
+    localStorage.setItem("expenses",JSON.stringify(expenses));
+    $("backupModal").style.display="none";
+    $("restoreInput").value="";
+    render();
+};
 
 render();
 </script>
