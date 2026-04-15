@@ -616,6 +616,25 @@ $("restoreBtn").onclick=()=>{
     render();
 };
 
+/* CATEGORY MODAL OPEN/CLOSE (SAFE ADD) */
+
+$("categoryBtn").onclick = () => {
+    $("categoryModal").style.display = "flex";
+};
+
+document.querySelectorAll("#categoryModal .closeBtn").forEach(btn=>{
+    btn.onclick = () => {
+        $("categoryModal").style.display = "none";
+    };
+});
+
+/* click outside to close */
+$("categoryModal").onclick = (e)=>{
+    if(e.target.id==="categoryModal"){
+        $("categoryModal").style.display = "none";
+    }
+};
+
 render();
 </script>
 
