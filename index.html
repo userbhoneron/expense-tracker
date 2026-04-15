@@ -616,25 +616,29 @@ $("restoreBtn").onclick=()=>{
     render();
 };
 
-/* CATEGORY MODAL OPEN/CLOSE (SAFE ADD) */
+/* CATEGORY MODAL OPEN/CLOSE (SAFE FIX) */
 
-$("categoryBtn").onclick = () => {
-    $("categoryModal").style.display = "flex";
-};
+const catBtn = $("categoryBtn");
+const catModal = $("categoryModal");
 
-document.querySelectorAll("#categoryModal .closeBtn").forEach(btn=>{
-    btn.onclick = () => {
-        $("categoryModal").style.display = "none";
+if(catBtn && catModal){
+
+    catBtn.onclick = () => {
+        catModal.style.display = "flex";
     };
-});
 
-/* click outside to close */
-$("categoryModal").onclick = (e)=>{
-    if(e.target.id==="categoryModal"){
-        $("categoryModal").style.display = "none";
-    }
-};
+    catModal.querySelectorAll(".closeBtn").forEach(btn=>{
+        btn.onclick = () => {
+            catModal.style.display = "none";
+        };
+    });
 
+    catModal.onclick = (e)=>{
+        if(e.target.id==="categoryModal"){
+            catModal.style.display = "none";
+        }
+    };
+}
 render();
 </script>
 
