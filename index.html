@@ -383,27 +383,35 @@ $("addBtn").onclick=()=>{
     render();
 };
 
-/* EDIT */
 function editExpense(i){
-    const e=expenses[i];
+    const e = expenses[i];
 
-    $("name").value=e.name;
-    $("amount").value=e.amount;
-    $("date").value=e.date;
+    $("name").value = e.name;
+    $("amount").value = e.amount;
+    $("date").value = e.date;
 
     if(customCats.includes(e.category)){
-        $("category").value=e.category;
-        $("customCategory").disabled=true;
+        $("category").value = e.category;
+
+        // ✅ FIX: handle "Other" properly
+        const isOther = e.category === "Other";
+        $("customCategory").disabled = !isOther;
+
+        if(isOther){
+            $("customCategory").value = "";
+        }else{
+            $("customCategory").value = "";
+        }
+
     }else{
-        $("category").value="Other";
-        $("customCategory").disabled=false;
-        $("customCategory").value=e.category;
+        $("category").value = "Other";
+        $("customCategory").disabled = false;
+        $("customCategory").value = e.category;
     }
 
-    editIndex=i;
-    $("addBtn").innerText="Update Expense";
+    editIndex = i;
+    $("addBtn").innerText = "Update Expense";
 }
-
 /* DELETE */
 function deleteExpense(i){
     if(confirm("Delete?")){
