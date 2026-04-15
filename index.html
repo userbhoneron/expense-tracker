@@ -168,6 +168,21 @@ canvas{width:100%!important}
     }
 }
 
+/* 🔽 ADD THIS CSS (anywhere in your style, no edits to existing rules) */
+#categoryBtn{
+    left:15px;
+    bottom:20px;
+    background:#8e24aa;
+    color:white;
+}
+
+@media (max-width:480px){
+    #categoryBtn{
+        left:10px;
+        bottom:15px;
+    }
+}
+
 /* Large screens */
 @media (min-width:901px){
 
@@ -187,6 +202,9 @@ canvas{width:100%!important}
 
 <!-- ➕ ADDED -->
 <button id="backupBtn" class="fab">💾</button>
+
+<!-- 🔽 ADD THIS BUTTON (just below backupBtn, nothing else touched) -->
+<button id="categoryBtn" class="fab">📂</button>
 
 <div class="container">
 
@@ -600,6 +618,26 @@ $("restoreBtn").onclick=()=>{
 
 render();
 </script>
+
+<!-- 🔽 ADD THIS MODAL (just before </body>, nothing else touched) -->
+<div id="categoryModal" class="modal">
+<div class="box">
+
+<h3>Manage Categories</h3>
+
+<button class="closeBtn">Close</button>
+
+<div class="section-title">➕ Add Category</div>
+<input placeholder="New category name">
+<button class="add">Add</button>
+
+<div class="section-title">📋 Existing Categories</div>
+<div></div>
+
+<button class="closeBtn">Close</button>
+
+</div>
+</div>
 
 </body>
 </html>
