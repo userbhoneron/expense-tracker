@@ -2,193 +2,165 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Expense Tracker</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Expense Tracker Final</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial;background:#f4f4f4;transition:.3s}
-body.dark{background:#121212;color:#eee}
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f4f4;
+    color:#222;
+    padding:18px;
+    transition:.25s;
+}
+
+body.dark{
+    background:#121212;
+    color:#eee;
+}
 
 .container{
-    max-width:520px;width:95%;margin:20px auto;
-    background:white;padding:15px;border-radius:12px;
-}
-body.dark .container{background:#1e1e1e}
-
-input,select,textarea{
-    width:100%;padding:10px;margin-top:6px;
-    border-radius:8px;border:1px solid #ccc;
+    max-width:900px;
+    margin:auto;
+    background:#fff;
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
 }
 
-button{cursor:pointer;transition:.2s}
-button:active{transform:scale(.95)}
-
-.add{background:#66bb6a;color:white;padding:12px;border:none;border-radius:8px;width:100%}
-.closeBtn{background:#1e88e5;color:white;border:none;padding:10px;border-radius:8px;width:100%}
-.saveBtn{background:#43a047;color:white;border:none;padding:12px;border-radius:8px;width:100%}
-.saveBtn:active{background:#2e7d32}
-
-.editBtn{background:#fbc02d;border:none;padding:5px}
-.deleteBtn{background:#e53935;color:white;border:none;padding:5px}
-
-/* FAB */
-.fab{position:fixed;right:15px;width:45px;height:45px;border-radius:50%;border:none;}
-#darkBtn{top:15px;background:#2e7d32;color:white}
-#searchBtn{top:70px;background:#43a047;color:white}
-#reportBtn{top:125px;background:#1e88e5;color:white}
-#notesBtn{bottom:20px;background:#fbc02d}
-
-/* ➕ ADDED */
-#backupBtn{
-    left:15px;
-    bottom:50%;
-    transform:translateY(50%);
-    background:#6d4c41;
-    color:white;
+body.dark .container,
+body.dark .box{
+    background:#1f1f1f;
 }
-/* Search */
-#searchBox{display:none}
 
-.section-title{
-    margin-top:15px;
-    font-weight:bold;
+h1,h2,h3{
+    margin-bottom:12px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+input,select,textarea,button{
+    width:100%;
+    padding:10px;
+    margin-top:8px;
+    border-radius:10px;
+    border:1px solid #ccc;
     font-size:14px;
-    opacity:0.8;
 }
 
-.divider{
-    height:1px;
-    background:#ddd;
-    margin:15px 0;
+body.dark input,
+body.dark select,
+body.dark textarea{
+    background:#2a2a2a;
+    color:#fff;
+    border-color:#444;
 }
 
-body.dark .divider{
-    background:#444;
+button{
+    cursor:pointer;
+    border:none;
 }
 
-/* Expense */
-.expense{
-    background:#f1f1f1;margin-top:8px;padding:10px;border-radius:10px;
-    display:flex;justify-content:space-between;
+.primary{
+    background:#2e7d32;
+    color:#fff;
 }
-body.dark .expense{background:#2a2a2a}
 
-/* Modal */
+.danger{
+    background:#d32f2f;
+    color:#fff;
+}
+
+.item{
+    background:#efefef;
+    padding:10px;
+    border-radius:12px;
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+
+body.dark .item{
+    background:#2b2b2b;
+}
+
 .modal{
-    position:fixed;top:0;left:0;width:100%;height:100%;
-    background:rgba(0,0,0,.6);display:none;
-    justify-content:center;align-items:center;padding:10px;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    padding:10px;
+    z-index:20;
 }
+
 .box{
-    background:white;width:100%;max-width:600px;
-    max-height:90vh;overflow:auto;padding:15px;border-radius:12px;
+    background:#fff;
+    width:100%;
+    max-width:650px;
+    max-height:90vh;
+    overflow:auto;
+    padding:18px;
+    border-radius:16px;
 }
-body.dark .box{background:#1e1e1e}
 
-canvas{width:100%!important}
+.hidden{
+    display:none;
+}
 
-/* =========================
-   ✅ RESPONSIVE IMPROVEMENTS
-========================= */
+/* Floating Buttons */
 
-/* Small phones */
-@media (max-width:480px){
+.fab{
+    position:fixed;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    color:#fff;
+    z-index:30;
+}
 
-    .container{
-        width:95%;
-        margin:10px auto;
-        padding:12px;
-    }
+#darkBtn{top:10px;right:10px;background:#2e7d32;}
+#searchBtn{top:66px;right:10px;background:#43a047;}
+#reportBtn{top:122px;right:10px;background:#1e88e5;}
+#notesBtn{bottom:10px;right:10px;background:#fbc02d;color:#000;}
+#backupBtn{top:50%;left:10px;transform:translateY(-50%);background:#6d4c41;}
+#categoryBtn{bottom:10px;left:10px;background:#8e24aa;}
 
-    h2{
-        font-size:20px;
-        text-align:center;
-    }
-
-    input,select,textarea,button{
-        font-size:14px;
-        padding:10px;
-    }
-
-    .expense{
-        flex-direction:column;
-        gap:6px;
-    }
-
-    .expense div:last-child{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-    }
-
-    /* FAB spacing fix */
-    .fab{
-        width:42px;
-        height:42px;
-        font-size:14px;
-    }
-
-    #darkBtn{top:10px;right:10px}
-    #searchBtn{top:60px;right:10px}
-    #reportBtn{top:110px;right:10px}
-
-    #notesBtn{bottom:15px;right:10px}
-
-    /* backup stays left-middle but safer */
-    #backupBtn{
-        left:10px;
-        top:50%;
-        transform:translateY(-50%);
-    }
-
-    /* Modal padding */
-    .box{
-        padding:12px;
-        max-height:95vh;
-    }
-
-    /* Charts spacing */
-    canvas{
-        margin-top:10px;
+@media(max-width:700px){
+    .grid{
+        grid-template-columns:1fr;
     }
 }
 
-/* Tablets */
-@media (min-width:481px) and (max-width:900px){
+/* SCROLLABLE EXPENSE LIST */
 
-    .container{
-        max-width:600px;
-    }
-
-    .box{
-        max-width:650px;
-    }
+#list{
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 6px;
+    margin-top: 10px;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 10px;
+    background: rgba(0,0,0,0.03);
 }
 
-/* 🔽 ADD THIS CSS (anywhere in your style, no edits to existing rules) */
-#categoryBtn{
-    left:15px;
-    bottom:20px;
-    background:#8e24aa;
-    color:white;
-}
-
-@media (max-width:480px){
-    #categoryBtn{
-        left:10px;
-        bottom:15px;
-    }
-}
-
-/* Large screens */
-@media (min-width:901px){
-
-    .container{
-        max-width:700px;
-    }
+body.dark #list{
+    border-color:#444;
+    background: rgba(255,255,255,0.03);
 }
 </style>
 </head>
@@ -199,476 +171,631 @@ canvas{width:100%!important}
 <button id="searchBtn" class="fab">🔍</button>
 <button id="reportBtn" class="fab">📊</button>
 <button id="notesBtn" class="fab">📝</button>
-
-<!-- ➕ ADDED -->
 <button id="backupBtn" class="fab">💾</button>
-
-<!-- 🔽 ADD THIS BUTTON (just below backupBtn, nothing else touched) -->
 <button id="categoryBtn" class="fab">📂</button>
 
 <div class="container">
 
-<h2>Expense Tracker</h2>
+<h1>Expense Tracker</h1>
 
-<div id="searchBox">
-
-<div class="section-title">🔍 Search & Filters</div>
-
+<div id="searchArea" class="hidden">
+<div class="grid">
 <input id="searchInput" placeholder="Search">
-
 <select id="filterCategory"></select>
-<input id="fromDate" type="date">
-<input id="toDate" type="date">
-<input id="minAmount" type="number" placeholder="Min">
-<input id="maxAmount" type="number" placeholder="Max">
-
+</div>
 </div>
 
-<div class="divider"></div>
-
-<div class="section-title">➕ Add Expense</div>
-
+<div class="grid">
 <input id="name" placeholder="Name">
-<input id="amount" type="number" placeholder="Amount">
+<input id="price" type="number" placeholder="Price">
+</div>
+
+<div class="grid">
 <input id="date" type="date">
-
 <select id="category"></select>
-<input id="customCategory" placeholder="Custom Category" disabled>
+</div>
 
-<button class="add" id="addBtn">Add Expense</button>
+<input id="customCategory" class="hidden" placeholder="Custom Category">
+
+<button id="saveBtn" class="primary">Add Expense</button>
+
+<h3 id="totalText">Total: 0</h3>
 
 <div id="list"></div>
-<div id="total"></div>
 
-<h4>Trend</h4>
+<h3>Trend</h3>
 <canvas id="lineChart"></canvas>
 
-<h4>Category Breakdown</h4>
+<h3>Category Breakdown</h3>
 <canvas id="pieChart"></canvas>
 
 </div>
 
-<!-- REPORT -->
-<div id="reportModal" class="modal">
-<div class="box">
-<h3>Report</h3>
-
-<input id="rFrom" type="date">
-<input id="rTo" type="date">
-<select id="rCategory"></select>
-<input id="rMin" type="number" placeholder="Min">
-<input id="rMax" type="number" placeholder="Max">
-
-<button class="add" id="genReport">Generate</button>
-
-<div id="reportOutput"></div>
-
-<canvas id="reportLine"></canvas>
-<canvas id="reportPie"></canvas>
-
-<button class="closeBtn" id="closeReport">Close</button>
-</div>
-</div>
-
 <!-- NOTES -->
+
 <div id="notesModal" class="modal">
 <div class="box">
-<h3>Notes & Insights</h3>
-
-<textarea id="notesArea"></textarea>
-<button class="saveBtn" id="saveNotes">Save Notes</button>
-
-<hr>
-<div id="autoNotes"></div>
-
-<button class="closeBtn" id="closeNotes">Close</button>
+<h2>Notes</h2>
+<textarea id="notesArea" rows="8"></textarea>
+<button id="saveNotesBtn" class="primary">Save</button>
+<button onclick="closeModal('notesModal')">Close</button>
 </div>
 </div>
 
-<!-- ➕ BACKUP MODAL -->
+<!-- BACKUP -->
+
 <div id="backupModal" class="modal">
 <div class="box">
 
-<h3>Backup & Restore</h3>
+<h2>Backup & Restore</h2>
 
-<button class="closeBtn" id="closeBackupTop">Close</button>
+<p>Current Saved JSON</p>
+<textarea id="backupOutput" rows="8" readonly></textarea>
 
-<div class="section-title">📤 Backup (Raw)</div>
-<textarea id="backupOutput" readonly style="height:120px;"></textarea>
+<p>Paste Your JSON</p>
+<textarea id="restoreInput" rows="8"></textarea>
 
-<div class="section-title">📥 Restore</div>
-<textarea id="restoreInput" placeholder="Paste backup here..."
-style="height:40px;transition:.3s;"></textarea>
+<button id="restoreBtn" class="primary">Submit JSON</button>
+<button onclick="closeModal('backupModal')">Close</button>
 
-<button class="add" id="restoreBtn">Submit</button>
+</div>
+</div>
 
-<button class="closeBtn" id="closeBackup">Close</button>
+<!-- CATEGORY -->
+
+<div id="categoryModal" class="modal">
+<div class="box">
+
+<h2>Category Manager</h2>
+
+<input id="newCategory" placeholder="New Category">
+<button id="addCategoryBtn" class="primary">Add</button>
+
+<div id="categoryList"></div>
+
+<button onclick="closeModal('categoryModal')">Close</button>
+
+</div>
+</div>
+
+<!-- REPORT -->
+
+<div id="reportModal" class="modal">
+<div class="box">
+
+<h2>Report Generator</h2>
+
+<input id="rName" placeholder="Name">
+
+<div class="grid">
+<input id="rMin" type="number" placeholder="Min Price">
+<input id="rMax" type="number" placeholder="Max Price">
+</div>
+
+<div class="grid">
+<input id="rFrom" type="date">
+<input id="rTo" type="date">
+</div>
+
+<select id="rCategory"></select>
+
+<button id="generateReportBtn" class="primary">Generate</button>
+
+<div id="reportOutput"></div>
+
+<canvas id="reportPie"></canvas>
+<canvas id="reportLine"></canvas>
+
+<button onclick="closeModal('reportModal')">Close</button>
 
 </div>
 </div>
 
 <script>
-const $=id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-let expenses=JSON.parse(localStorage.getItem("expenses"))||[];
-let notes=localStorage.getItem("notes")||"";
-let customCats=JSON.parse(localStorage.getItem("customCats"))||[
-"Food","Transport","Shopping","Bills","Entertainment","Other"
-];
+let expenses =
+JSON.parse(localStorage.getItem("expenses")) || [];
 
-let editIndex=-1;
-let lineChart,pieChart,reportLineChart,reportPieChart;
+let notes =
+localStorage.getItem("notes") || "";
 
-/* DARK MODE */
-if(localStorage.getItem("darkMode")==="on") document.body.classList.add("dark");
-$("darkBtn").onclick=()=>{
-    document.body.classList.toggle("dark");
-    localStorage.setItem("darkMode",
-    document.body.classList.contains("dark")?"on":"off");
-};
+let categories =
+JSON.parse(localStorage.getItem("categories")) ||
+["Food","Transport","Bills","Shopping","Entertainment","Other"];
+
+let editIndex = -1;
+
+let lineChart;
+let pieChart;
+let reportPie;
+let reportLine;
+
+/* SAVE */
+
+function saveAll(){
+    localStorage.setItem("expenses",
+    JSON.stringify(expenses));
+
+    localStorage.setItem("notes",notes);
+
+    localStorage.setItem("categories",
+    JSON.stringify(categories));
+}
+
+/* MODAL */
+
+function closeModal(id){
+    $(id).style.display="none";
+}
+window.closeModal=closeModal;
 
 /* CATEGORY LOAD */
-function loadCategoryDropdown(){
+
+function loadCategories(){
+
     $("category").innerHTML="";
-    customCats.forEach(c=>{
-        $("category").innerHTML+=`<option>${c}</option>`;
+    $("filterCategory").innerHTML=
+    '<option value="">All</option>';
+
+    $("rCategory").innerHTML=
+    '<option value="">All</option>';
+
+    categories.forEach(cat=>{
+
+        $("category").innerHTML+=
+        `<option>${cat}</option>`;
+
+        $("filterCategory").innerHTML+=
+        `<option>${cat}</option>`;
+
+        $("rCategory").innerHTML+=
+        `<option>${cat}</option>`;
     });
 }
-loadCategoryDropdown();
 
-/* CATEGORY CHANGE */
+/* TOGGLE CUSTOM */
+
 $("category").onchange=()=>{
-    const isOther=$("category").value==="Other";
-    $("customCategory").disabled=!isOther;
-    if(!isOther) $("customCategory").value="";
+    $("customCategory").classList.toggle(
+        "hidden",
+        $("category").value!=="Other"
+    );
 };
 
-/* ADD / UPDATE */
-$("addBtn").onclick=()=>{
-    const name=$("name").value.trim();
-    const amount=+$("amount").value;
-    const date=$("date").value;
+/* CLEAR */
+
+function clearForm(){
+    $("name").value="";
+    $("price").value="";
+    $("date").value="";
+    $("customCategory").value="";
+    $("saveBtn").innerText="Add Expense";
+    editIndex=-1;
+}
+
+/* ADD */
+
+$("saveBtn").onclick=()=>{
+
     let cat=$("category").value;
-    const custom=$("customCategory").value.trim();
 
     if(cat==="Other"){
-        if(!custom){alert("Enter custom category");return;}
-        cat=custom;
+        cat=$("customCategory").value.trim();
 
-        if(!customCats.includes(custom)){
-            customCats.push(custom);
-            localStorage.setItem("customCats",JSON.stringify(customCats));
-            loadCategoryDropdown();
+        if(!cat){
+            alert("Enter custom category");
+            return;
+        }
+
+        if(!categories.includes(cat)){
+            categories.splice(
+                categories.length-1,
+                0,
+                cat
+            );
         }
     }
 
-    if(!name||!amount||!date){alert("Fill all");return;}
+    const item={
+        name:$("name").value.trim(),
+        price:+$("price").value,
+        date:$("date").value,
+        category:cat
+    };
 
-    if(editIndex===-1){
-        expenses.push({name,amount,date,category:cat});
-    }else{
-        expenses[editIndex]={name,amount,date,category:cat};
-        editIndex=-1;
-        $("addBtn").innerText="Add Expense";
+    if(!item.name||!item.price||!item.date){
+        alert("Fill all fields");
+        return;
     }
 
-    localStorage.setItem("expenses",JSON.stringify(expenses));
+    if(editIndex===-1){
+        expenses.push(item);
+    }else{
+        expenses[editIndex]=item;
+    }
 
-    $("name").value="";
-    $("amount").value="";
-    $("date").value="";
-    $("customCategory").value="";
-    $("category").value=customCats[0];
-
+    saveAll();
+    loadCategories();
+    clearForm();
     render();
 };
 
+/* EDIT */
+
 function editExpense(i){
-    const e = expenses[i];
 
-    $("name").value = e.name;
-    $("amount").value = e.amount;
-    $("date").value = e.date;
+    const x=expenses[i];
 
-    if(customCats.includes(e.category)){
-        $("category").value = e.category;
+    $("name").value=x.name;
+    $("price").value=x.price;
+    $("date").value=x.date;
 
-        // ✅ FIX: handle "Other" properly
-        const isOther = e.category === "Other";
-        $("customCategory").disabled = !isOther;
-
-        if(isOther){
-            $("customCategory").value = "";
-        }else{
-            $("customCategory").value = "";
-        }
-
+    if(categories.includes(x.category)){
+        $("category").value=x.category;
     }else{
-        $("category").value = "Other";
-        $("customCategory").disabled = false;
-        $("customCategory").value = e.category;
+        $("category").value="Other";
+        $("customCategory").value=x.category;
     }
 
-    editIndex = i;
-    $("addBtn").innerText = "Update Expense";
+    $("category").onchange();
+
+    editIndex=i;
+
+    $("saveBtn").innerText=
+    "Save Changes";
 }
+window.editExpense=editExpense;
+
 /* DELETE */
+
 function deleteExpense(i){
-    if(confirm("Delete?")){
+
+    if(confirm("Delete expense?")){
         expenses.splice(i,1);
-        localStorage.setItem("expenses",JSON.stringify(expenses));
+        saveAll();
         render();
     }
 }
-
-/* SEARCH */
-$("searchBtn").onclick=()=>{
-    const box=$("searchBox");
-    box.style.display=box.style.display==="block"?"none":"block";
-    if(box.style.display==="none"){
-        $("searchInput").value="";
-        render();
-    }
-};
-$("searchInput").oninput=render;
+window.deleteExpense=deleteExpense;
 
 /* RENDER */
+
 function render(){
-    let html="",sum=0;
 
-    const text=$("searchInput").value.toLowerCase();
-    const cat=$("filterCategory").value;
-    const from=$("fromDate").value;
-    const to=$("toDate").value;
-    const min=+$("minAmount").value||0;
-    const max=+$("maxAmount").value||Infinity;
+    let total=0;
 
-    expenses.forEach((e,i)=>{
-        const match=
-        (!text||e.name.toLowerCase().includes(text)||e.category.toLowerCase().includes(text))&&
-        (!cat||e.category===cat)&&
-        (!from||e.date>=from)&&
-        (!to||e.date<=to)&&
-        (e.amount>=min&&e.amount<=max);
+    const text=
+    $("searchInput").value.toLowerCase();
 
-        if(!match)return;
+    const cat=
+    $("filterCategory").value;
 
-        sum+=e.amount;
+    $("list").innerHTML="";
 
-        html+=`
-        <div class="expense">
-            <div><b>${e.name}</b><br>${e.date} • ${e.category}</div>
+    expenses.forEach((x,i)=>{
+
+        if(text &&
+          !(x.name+" "+x.category)
+          .toLowerCase()
+          .includes(text)) return;
+
+        if(cat && x.category!==cat)
+            return;
+
+        total+=x.price;
+
+        $("list").innerHTML+=`
+        <div class="item">
             <div>
-                ${e.amount}
-                <button class="editBtn" onclick="editExpense(${i})">Edit</button>
-                <button class="deleteBtn" onclick="deleteExpense(${i})">Del</button>
+                <b>${x.name}</b><br>
+                ${x.date} • ${x.category}
+            </div>
+            <div>
+                ${x.price}
+                <button onclick="editExpense(${i})">Edit</button>
+                <button class="danger"
+                onclick="deleteExpense(${i})">
+                Del
+                </button>
             </div>
         </div>`;
     });
 
-    $("list").innerHTML=html;
-    $("total").innerText="Total: "+sum;
+    $("totalText").innerText=
+    "Total: "+total;
 
-    loadFilters();
     drawCharts();
 }
 
-/* FILTERS */
-function loadFilters(){
-    $("filterCategory").innerHTML='<option value="">All</option>';
-    $("rCategory").innerHTML='<option value="">All</option>';
-
-    customCats.forEach(c=>{
-        $("filterCategory").innerHTML+=`<option>${c}</option>`;
-        $("rCategory").innerHTML+=`<option>${c}</option>`;
-    });
-}
-
 /* CHARTS */
-function drawCharts(){
-    const d={},c={};
 
-    expenses.forEach(e=>{
-        d[e.date]=(d[e.date]||0)+e.amount;
-        c[e.category]=(c[e.category]||0)+e.amount;
+function drawCharts(){
+
+    const byDate={};
+    const byCat={};
+
+    expenses.forEach(x=>{
+        byDate[x.date]=(byDate[x.date]||0)+x.price;
+        byCat[x.category]=(byCat[x.category]||0)+x.price;
     });
 
-    const dates=Object.keys(d).sort();
-    const cats=Object.keys(c).sort();
-
-    if(lineChart)lineChart.destroy();
-    if(pieChart)pieChart.destroy();
+    if(lineChart) lineChart.destroy();
+    if(pieChart) pieChart.destroy();
 
     lineChart=new Chart($("lineChart"),{
         type:"line",
-        data:{labels:dates,datasets:[{data:dates.map(x=>d[x])}]}
+        data:{
+            labels:Object.keys(byDate),
+            datasets:[{
+                data:Object.values(byDate)
+            }]
+        }
     });
 
     pieChart=new Chart($("pieChart"),{
         type:"pie",
-        data:{labels:cats,datasets:[{data:cats.map(x=>c[x])}]}
+        data:{
+            labels:Object.keys(byCat),
+            datasets:[{
+                data:Object.values(byCat)
+            }]
+        }
     });
 }
 
-/* REPORT */
-$("reportBtn").onclick=()=>{$("reportModal").style.display="flex"};
-$("closeReport").onclick=()=>{$("reportModal").style.display="none"};
+/* FLOATING BUTTONS */
 
-$("genReport").onclick=()=>{
-    const f=expenses.filter(e=>{
-        return (!$("rFrom").value||e.date>=$("rFrom").value)&&
-               (!$("rTo").value||e.date<=$("rTo").value)&&
-               (!$("rCategory").value||e.category===$("rCategory").value)&&
-               (e.amount>=(+$("rMin").value||0))&&
-               (e.amount<=(+$("rMax").value||Infinity));
-    });
+$("darkBtn").onclick=()=>{
+    document.body.classList.toggle("dark");
+};
 
-    const last5=f.slice(-5);
-    const total5=last5.reduce((a,b)=>a+b.amount,0);
+$("searchBtn").onclick=()=>{
+    $("searchArea").classList.toggle("hidden");
+};
 
-    $("reportOutput").innerHTML=`Entries: ${f.length}<br>Last 5 total: ${total5}`;
+$("notesBtn").onclick=()=>{
+    $("notesArea").value=notes;
+    $("notesModal").style.display="flex";
+};
 
-    const d={},c={};
-    f.forEach(e=>{
-        d[e.date]=(d[e.date]||0)+e.amount;
-        c[e.category]=(c[e.category]||0)+e.amount;
-    });
+$("reportBtn").onclick=()=>{
+    $("reportModal").style.display="flex";
+};
 
-    if(reportLineChart)reportLineChart.destroy();
-    if(reportPieChart)reportPieChart.destroy();
+$("backupBtn").onclick=()=>{
+    $("backupOutput").value=
+    JSON.stringify(expenses,null,2);
 
-    reportLineChart=new Chart($("reportLine"),{
-        type:"line",
-        data:{labels:Object.keys(d),datasets:[{data:Object.values(d)}]}
-    });
+    $("restoreInput").value="";
+    $("backupModal").style.display="flex";
+};
 
-    reportPieChart=new Chart($("reportPie"),{
-        type:"pie",
-        data:{labels:Object.keys(c),datasets:[{data:Object.values(c)}]}
-    });
+$("categoryBtn").onclick=()=>{
+    $("categoryModal").style.display="flex";
+    renderCategoryList();
 };
 
 /* NOTES */
-$("notesBtn").onclick=()=>{
-    $("notesModal").style.display="flex";
-    $("notesArea").value=notes;
-    generateInsights();
-};
 
-$("saveNotes").onclick=()=>{
+$("saveNotesBtn").onclick=()=>{
     notes=$("notesArea").value;
-    localStorage.setItem("notes",notes);
-    $("saveNotes").innerText="Saved ✓";
-    setTimeout(()=>$("saveNotes").innerText="Save Notes",1000);
+    saveAll();
+    closeModal("notesModal");
 };
 
-$("closeNotes").onclick=()=>{$("notesModal").style.display="none"};
+/* BACKUP */
 
-function generateInsights(){
-    const last5=expenses.slice(-5);
-    const prev5=expenses.slice(-10,-5);
+$("restoreBtn").onclick = () => {
 
-    const l=last5.reduce((a,b)=>a+b.amount,0);
-    const p=prev5.reduce((a,b)=>a+b.amount,0);
+    try {
 
-    let msg=`Last 5 total: ${l}<br>`;
-    if(prev5.length){
-        const diff=l-p;
-        msg+=`Previous: ${p}<br>`;
-        msg+=diff>0?`📈 +${diff}`:diff<0?`📉 -${Math.abs(diff)}`:`No change`;
+        const data = JSON.parse(
+            $("restoreInput").value
+        );
+
+        if (!Array.isArray(data))
+            throw 0;
+
+        const replace = confirm(
+            "OK = Replace All\nCancel = Add"
+        );
+
+        expenses = replace
+            ? data
+            : [...expenses, ...data];
+
+        /* ADD MISSING CUSTOM CATEGORIES */
+        data.forEach(item => {
+
+            if (
+                item.category &&
+                !categories.includes(item.category)
+            ) {
+                categories.splice(
+                    categories.length - 1,
+                    0,
+                    item.category
+                );
+            }
+
+        });
+
+        saveAll();
+        loadCategories();
+        renderCategoryList();
+        render();
+
+        closeModal("backupModal");
+
+    } catch {
+
+        alert("Invalid JSON");
+
     }
 
-    $("autoNotes").innerHTML=msg;
-}
-
-/* =========================
-   ✅ BACKUP FEATURE (ADDED)
-========================= */
-
-$("backupBtn").onclick=()=>{
-    $("backupModal").style.display="flex";
-    $("backupOutput").value=JSON.stringify(expenses,null,2);
 };
+/* CATEGORY */
 
-$("closeBackup").onclick=()=>{$("backupModal").style.display="none"};
-$("closeBackupTop").onclick=()=>{$("backupModal").style.display="none"};
+$("addCategoryBtn").onclick=()=>{
 
-$("restoreInput").onfocus=()=>{
-    $("restoreInput").style.height="150px";
-};
+    const val=
+    $("newCategory").value.trim();
 
-$("restoreBtn").onclick=()=>{
-    const txt=$("restoreInput").value.trim();
-    if(!txt){alert("Paste backup data");return;}
+    if(!val) return;
 
-    let data;
-    try{
-        data=JSON.parse(txt);
-        if(!Array.isArray(data)) throw "Invalid";
-    }catch{
-        alert("Invalid format");
+    if(categories.includes(val)){
+        alert("Already exists");
         return;
     }
 
-    const choice=confirm("OK = Replace all\nCancel = Add");
+    categories.push(val);
 
-    if(choice){
-        expenses=data;
-    }else{
-        expenses=[...expenses,...data];
-    }
+    $("newCategory").value="";
 
-    localStorage.setItem("expenses",JSON.stringify(expenses));
-    $("backupModal").style.display="none";
-    $("restoreInput").value="";
-    render();
+    saveAll();
+    loadCategories();
+    renderCategoryList();
 };
 
-/* CATEGORY MODAL OPEN/CLOSE (SAFE FIX) */
+function renderCategoryList(){
 
-const catBtn = $("categoryBtn");
-const catModal = $("categoryModal");
+    $("categoryList").innerHTML="";
 
-if(catBtn && catModal){
+    categories
+    .filter(x=>x!=="Other")
+    .forEach(cat=>{
 
-    catBtn.onclick = () => {
-        catModal.style.display = "flex";
-    };
+        $("categoryList").innerHTML+=`
+        <div class="item">
+            <div>${cat}</div>
+            <div>
+                <button class="danger"
+                onclick="removeCat('${cat}')">
+                Delete
+                </button>
+            </div>
+        </div>`;
+    });
+}
 
-    catModal.querySelectorAll(".closeBtn").forEach(btn=>{
-        btn.onclick = () => {
-            catModal.style.display = "none";
-        };
+function removeCat(cat){
+
+    if(expenses.some(x=>x.category===cat)){
+        alert("Used in expenses");
+        return;
+    }
+
+    categories=
+    categories.filter(x=>x!==cat);
+
+    saveAll();
+    loadCategories();
+    renderCategoryList();
+}
+window.removeCat=removeCat;
+
+/* REPORT */
+
+$("generateReportBtn").onclick=()=>{
+
+    const name=
+    $("rName").value.toLowerCase();
+
+    const min=
+    +$("rMin").value || 0;
+
+    const max=
+    +$("rMax").value || Infinity;
+
+    const from=
+    $("rFrom").value;
+
+    const to=
+    $("rTo").value;
+
+    const cat=
+    $("rCategory").value;
+
+    const f=
+    expenses.filter(x=>{
+
+        return (!name ||
+        x.name.toLowerCase()
+        .includes(name))
+
+        && x.price>=min
+        && x.price<=max
+
+        && (!from ||
+        x.date>=from)
+
+        && (!to ||
+        x.date<=to)
+
+        && (!cat ||
+        x.category===cat);
     });
 
-    catModal.onclick = (e)=>{
-        if(e.target.id==="categoryModal"){
-            catModal.style.display = "none";
+    const total=
+    f.reduce((a,b)=>a+b.price,0);
+
+    $("reportOutput").innerHTML=
+    "Entries: "+f.length+
+    "<br>Total: "+total;
+
+    const byDate={};
+    const byCat={};
+
+    f.forEach(x=>{
+        byDate[x.date]=(byDate[x.date]||0)+x.price;
+        byCat[x.category]=(byCat[x.category]||0)+x.price;
+    });
+
+    if(reportPie) reportPie.destroy();
+    if(reportLine) reportLine.destroy();
+
+    reportPie=new Chart($("reportPie"),{
+        type:"pie",
+        data:{
+            labels:Object.keys(byCat),
+            datasets:[{
+                data:Object.values(byCat)
+            }]
         }
-    };
-}
+    });
+
+    reportLine=new Chart($("reportLine"),{
+        type:"line",
+        data:{
+            labels:Object.keys(byDate),
+            datasets:[{
+                data:Object.values(byDate)
+            }]
+        }
+    });
+};
+
+/* SEARCH FIX */
+
+$("searchInput").addEventListener("input", () => {
+    render();
+});
+
+$("filterCategory").addEventListener("change", () => {
+    render();
+});
+
+/* INIT */
+
+loadCategories();
+render();
+
+/* INIT */
+
+loadCategories();
 render();
 </script>
-
-<!-- 🔽 ADD THIS MODAL (just before </body>, nothing else touched) -->
-<div id="categoryModal" class="modal">
-<div class="box">
-
-<h3>Manage Categories</h3>
-
-<button class="closeBtn">Close</button>
-
-<div class="section-title">➕ Add Category</div>
-<input placeholder="New category name">
-<button class="add">Add</button>
-
-<div class="section-title">📋 Existing Categories</div>
-<div></div>
-
-<button class="closeBtn">Close</button>
-
-</div>
-</div>
 
 </body>
 </html>
